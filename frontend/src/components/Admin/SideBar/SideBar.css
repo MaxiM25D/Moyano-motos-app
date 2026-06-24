@@ -1,0 +1,64 @@
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background-color: #1E1E1E;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+  gap: 1rem;
+}
+
+.sidebar-logo {
+  font-family: "Playfair Display", serif;
+  color: #B89B72;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.sidebar-link {
+  color: #ccc;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  transition: 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #2e2e2e;
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background-color: #B89B72;
+  color: #fff;
+}
+
+.sidebar-logout {
+  background: none;
+  border: 1px solid #555;
+  color: #aaa;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  transition: 0.2s ease;
+}
+
+.sidebar-logout:hover {
+  border-color: #B89B72;
+  color: #B89B72;
+}

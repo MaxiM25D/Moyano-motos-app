@@ -1,0 +1,89 @@
+.product-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+<<<<<<< HEAD
+
+  background: #CFC3B6;
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+=======
+  align-items: center;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.producto-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.389);
+>>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+
+.product-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  object-fit: cover;
+}
+
+.product-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1rem;
+
+  color: #1E1E1E;
+
+  padding: 15px 15px 5px;
+  text-align: center;
+}
+
+.product-price {
+  font-family: "Montserrat", sans-serif;
+  color: #B89B72;
+
+  text-align: center;
+
+  margin-bottom: 10px;
+}
+
+.btn-detail {
+  margin: 10px 15px 15px;
+
+  text-align: center;
+
+  background: #1E1E1E;
+  color: white;
+
+  padding: 10px;
+
+  border-radius: 10px;
+  text-decoration: none;
+<<<<<<< HEAD
+=======
+  background: #BDE3C3;
+  color: #000000;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  
+}
+.btn-detalle:hover { filter: brightness(1.05); }
+>>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
+
+  font-size: 0.85rem;
+
+  transition: background 0.3s;
+}
+
+.btn-detail:hover {
+  background: #B89B72;
+}

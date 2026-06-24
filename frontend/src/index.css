@@ -1,0 +1,21 @@
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+
+html, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  /* font-family: 'Segoe UI', sans-serif; */
+}
+
+main {
+  flex: 1; /* ocupa el espacio disponible */
+  padding: 1rem;
+}
+

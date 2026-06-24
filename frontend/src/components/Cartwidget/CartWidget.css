@@ -1,0 +1,38 @@
+.cart-widget {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+<<<<<<< HEAD
+=======
+.cart-btn {
+  background: none;
+  border: none;
+  color: #F5EDED;
+  cursor: pointer;
+  font-size: 1.7rem;
+}
+
+.cart-btn:hover {
+  transform: scale(1.1);
+  transition: 0.2s;
+  color: #0000003f;
+}
+>>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #B89B72;
+  color: #fff;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

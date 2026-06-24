@@ -1,0 +1,42 @@
+.admin-users {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-users-header h2 {
+  font-family: "Playfair Display", serif;
+  color: #1E1E1E;
+  font-size: 1.8rem;
+}
+
+.users-count {
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.role-badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.role-badge.admin {
+  background-color: #1E1E1E;
+  color: #B89B72;
+}
+
+.role-badge.user {
+  background-color: #f0ebe4;
+  color: #555;
+}

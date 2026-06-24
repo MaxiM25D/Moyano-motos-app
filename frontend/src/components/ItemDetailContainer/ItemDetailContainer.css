@@ -1,0 +1,129 @@
+<<<<<<< HEAD
+.product-detail-container {
+  max-width: 1100px;
+  margin: 80px auto;
+  padding: 40px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+
+  background: #F8F5F2;
+}
+
+/* Imagen */
+
+.product-detail-image {
+  width: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+/* Columna de info */
+
+.product-detail-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Título */
+
+.product-detail-title {
+  font-family: "Playfair Display", serif;
+  font-size: 2.4rem;
+  color: #1E1E1E;
+  margin-bottom: 20px;
+}
+
+/* Precio */
+
+.product-detail-price {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.6rem;
+  color: #B89B72;
+  margin-bottom: 20px;
+}
+
+/* Categoría */
+
+.product-detail-category {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Botón */
+
+.btn-add-cart {
+  width: fit-content;
+  padding: 14px 26px;
+
+  background: #1E1E1E;
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.btn-add-cart:hover {
+  background: #B89B72;
+}
+
+/* -------- TABLET -------- */
+
+@media (max-width: 900px) {
+
+  .product-detail-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 30px;
+  }
+
+  .product-detail-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .product-detail-price {
+    text-align: center;
+  }
+
+  .product-detail-category {
+    text-align: center;
+  }
+
+  .btn-add-cart {
+    margin: 0 auto;
+  }
+
+}
+
+/* -------- CELULAR -------- */
+
+@media (max-width: 500px) {
+
+  .product-detail-container {
+    padding: 20px;
+    margin: 40px auto;
+  }
+
+  .product-detail-title {
+    font-size: 1.6rem;
+  }
+
+  .product-detail-price {
+    font-size: 1.3rem;
+  }
+
+}
+=======
+>>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
