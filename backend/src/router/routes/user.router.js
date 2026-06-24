@@ -1,14 +1,11 @@
 import { Router } from "express";
 import { getUsers, getUserById } from "../../controllers/user.controller.js";
-import passport from "passport";
-import { authorize } from "../../middlewares/auth.middleware.js";
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { roleMiddleware }  from "../../middlewares/role.middleware.js";
 
 const router = Router();
 
-router.use(passport.authenticate("jwt", { session: false }));
-router.use(authorize("admin"));
-
-router.get("/", getUsers);
-router.get("/:id", getUserById);
+router.get("/",    authMiddleware, roleMiddleware("admin"), getUsers);
+router.get("/:id", authMiddleware, getUserById);
 
 export default router;
