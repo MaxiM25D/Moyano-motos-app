@@ -17,6 +17,6 @@ export class CartDAO {
   }
 
   save(cart) {
-    return cart.save();
+    return cart.save().then((savedCart) => savedCart.populate("products.product"));
   }
 }
