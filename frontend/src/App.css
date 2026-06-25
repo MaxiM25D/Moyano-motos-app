@@ -1,17 +1,9 @@
-<<<<<<< HEAD
+
 #root {
   max-width: 100px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-=======
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
 }
 
 header {

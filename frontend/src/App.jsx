@@ -8,17 +8,11 @@ import Login from "./components/Login/Login.jsx";
 import Register from "./components/Register/Register.jsx";
 import ItemDetailContainer from "./components/ItemDetailContainer/ItemDetailContainer";
 import ItemListContainer from "./components/ItemListContainer/ItemListContainer";
-<<<<<<< HEAD
 import AdminLayout   from "./components/Admin/AdminLayaout/AdminLayout.jsx";
 import AdminProducts from "./components/Admin/pages/AdminProducts/AdminProducts.jsx";
 import AdminUsers    from "./components/Admin/pages/Users/AdminUsers.jsx";
 import ProductForm   from "./components/Admin/ProductForm/ProductForm.jsx";
-=======
 import "./App.css";
-
-
-
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
 
 function App() {
 

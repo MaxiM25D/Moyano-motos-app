@@ -5,21 +5,12 @@ footer {
   width: 100%;
   height: 100%;
   text-align: center;
-<<<<<<< HEAD
   padding: 2rem 1rem;
   background-color: #E8DED2;
   font-family: "Montserrat", sans-serif;
   font-size: 0.9rem;
   color: #1E1E1E;
   border-top: 1px solid #D8CFC3;
-=======
-  padding: 1rem;
-  background-color: #FF90BC; 
-  font-size: 0.8rem;
-  color: #F5EDED;
-  font-weight: bold;
-
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
 }
 
 .social-icons {
@@ -30,15 +21,9 @@ footer {
 }
 
 .social-icons a {
-<<<<<<< HEAD
   color: #1E1E1E;
   font-size: 22px;
   transition: all 0.3s ease;
-=======
-  color: #F5EDED;
-  font-size: 24px;
-  transition: transform 0.5s ease, color 0.5s ease;
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
 }
 
 .social-icons a:hover {

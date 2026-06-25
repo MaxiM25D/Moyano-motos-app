@@ -4,7 +4,6 @@
   margin: 0 auto;
 
   display: grid;
-<<<<<<< HEAD
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 
   gap: 40px;
@@ -32,10 +31,4 @@
   .products-grid {
     grid-template-columns: 1fr;
   }
-=======
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  padding: 18px;
-  background-color: #E1ECC8;
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
 }

@@ -1,13 +1,11 @@
-<<<<<<< HEAD
+
 .product-detail-container {
   max-width: 1100px;
   margin: 80px auto;
   padding: 40px;
-
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
-
   background: #F8F5F2;
 }
 
@@ -125,5 +123,3 @@
   }
 
 }
-=======
->>>>>>> 1d41361186b3b67662fda3e163815ae28950ff3f
