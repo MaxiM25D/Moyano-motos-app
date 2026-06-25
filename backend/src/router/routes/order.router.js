@@ -5,9 +5,9 @@ import {
   getOrderById,
   getAllOrders,
   updateOrderStatus
-} from "../controllers/order.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { roleMiddleware }  from "../middlewares/role.middleware.js";
+} from "../../controllers/order.controller.js";
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { roleMiddleware }  from "../../middlewares/role.middleware.js";
  
 const router = Router();
  

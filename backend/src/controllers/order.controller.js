@@ -35,6 +35,15 @@ export const getOrderById = async (req, res) => {
   try {
     const order = await orderService.getOrderById(req.params.id);
     if (!order) return res.status(404).json({ message: "Orden no encontrada" });
+
+    const orderUserId = order.user?._id?.toString() ?? order.user?.toString();
+    const isOwner = orderUserId === req.user.sub;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "No tenes permiso para ver esta orden" });
+    }
+
     res.json({ order: new OrderDTO(order) });
   } catch (error) {
     res.status(500).json({ error: error.message });
