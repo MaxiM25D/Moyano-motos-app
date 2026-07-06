@@ -1,7 +1,7 @@
 .nav {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
+  z-index: 100;
   width: 100%;
   background: #FF90BC;
   display: flex;
@@ -10,6 +10,12 @@
   padding: 1.5rem 4rem;
   background-color: #E8DED2;
   border-bottom: 1px solid #D8CFC3;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo-container {
@@ -121,6 +127,19 @@
   font-size: 0.85rem;
   color: #6e6257;
   letter-spacing: 0.5px;
+}
+
+.nav-orders-link {
+  color: #1e1e1e;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.nav-orders-link:hover {
+  color: #8a6540;
 }
 
 .btn-login {

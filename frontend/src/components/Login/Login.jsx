@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
@@ -10,6 +10,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const { mergeCart } = useCart();
 
@@ -27,8 +28,8 @@ function Login() {
         await mergeCart(data.user.cartId);
       }
 
-      navigate("/");
-    } catch (err) {
+      navigate(location.state?.from || "/", { replace: true });
+    } catch {
       setError("Email o contraseña incorrectos");
     }
   };

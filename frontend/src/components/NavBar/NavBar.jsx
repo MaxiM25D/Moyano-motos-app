@@ -91,6 +91,7 @@ function NavBar() {
                   ADMIN
                 </Link>
               )}
+              <Link to="/orders" className="nav-orders-link">MIS COMPRAS</Link>
               <span className="nav-username">Hola, {user.first_name}</span>
               <button onClick={handleLogout} className="btn-logout">SALIR</button>
             </>

@@ -6,6 +6,7 @@ import Contacto from "./components/pages/Contacto/Contacto.jsx";
 import Cart from "./components/pages/Cart/Cart.jsx";
 import Checkout from "./components/pages/Checkout/Checkout";
 import Orders from "./components/pages/Orders/Orders";
+import OrderDetail from "./components/pages/Orders/OrderDetail";
 import OrderSuccess from "./components/pages/OrderSuccess/OrderSuccess.jsx";
 import Login from "./components/Login/Login.jsx";
 import Register from "./components/Register/Register.jsx";
@@ -15,6 +16,7 @@ import AdminLayout   from "./components/Admin/AdminLayaout/AdminLayout.jsx";
 import AdminProducts from "./components/Admin/pages/AdminProducts/AdminProducts.jsx";
 import AdminUsers    from "./components/Admin/pages/Users/AdminUsers.jsx";
 import ProductForm   from "./components/Admin/ProductForm/ProductForm.jsx";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import "./App.css";
 
 function App() {
@@ -25,7 +27,7 @@ function App() {
         <main className="main-content">
         <Routes>
             {/* Rutas panel Admin */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
               <Route path="products"          element={<AdminProducts />} />
               <Route path="products/new"      element={<ProductForm />} />
               <Route path="products/edit/:id" element={<ProductForm />} />
@@ -56,12 +58,12 @@ function App() {
             {/* Ruta para carrito de compras */}
             <Route path="/cart" element={<Cart/>} />
             {/* Ruta para checkout */}
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             {/* Ruta para mis órdenes */}
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/orders/:id" element={<OrderDetail />} />
+            <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+            <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             {/* Ruta para orden exitosa */}
-            <Route path="/order-success/:id" element={<OrderSuccess />}/>   
+            <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>}/>
 
             {/* Rutas de autenticación */}
             <Route path="/login" element={<Login />} />

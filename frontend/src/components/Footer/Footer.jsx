@@ -1,5 +1,6 @@
 import '../Footer/Footer.css';
 import { FaInstagram, FaFacebook, FaWhatsapp } from "react-icons/fa";
+import { contactChannels } from "../../data/contacto";
 
 export default function Footer() {
   return (
@@ -7,13 +8,13 @@ export default function Footer() {
       <p>© {new Date().getFullYear()} LUNEK | Todos los derechos reservados</p>
       
       <div className="social-icons">
-        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+        <a href={contactChannels.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram de LUNEK">
           <FaInstagram />
         </a>
-        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+        <a href={contactChannels.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook de LUNEK">
           <FaFacebook />
         </a>
-        <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
+        <a href={contactChannels.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp de LUNEK">
           <FaWhatsapp />
         </a>
       </div>

@@ -1,8 +1,22 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { getCart, addProductToCart, createCart } from "../services/cart.service";
+import {
+  getCart,
+  addProductToCart,
+  createCart,
+  updateProductQuantity,
+  removeProductFromCart
+} from "../services/cart.service";
 
 const CartContext = createContext();
+
+const normalizeId = (value) => {
+  if (typeof value === "string") return value;
+  if (typeof value?._id === "string") return value._id;
+  if (typeof value?.id === "string") return value.id;
+  if (typeof value?.$oid === "string") return value.$oid;
+  return null;
+};
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);  // array de items
@@ -28,13 +42,12 @@ export function CartProvider({ children }) {
   // Carrito del usuario desde la DB
   const loadUserCart = async () => {
     try {
-      const stored = localStorage.getItem("user");
-      const userData = stored ? JSON.parse(stored) : null;
-      if (!userData?.cartId) return;
+      const userCartId = normalizeId(user?.cartId);
+      if (!userCartId) return;
 
-      const data = await getCart(userData.cartId);
-      setCartId(data.cart.id);
-      setCart(data.cart.products ?? []);
+      const data = await getCart(userCartId);
+      setCartId(normalizeId(data.cart.id));
+      setCart(data.cart.products ?? data.cart.items ?? []);
     } catch (err) {
       console.error("Error cargando carrito:", err);
     }
@@ -50,30 +63,18 @@ export function CartProvider({ children }) {
     if (user) {
       // Usuario logueado → DB
       try {
-        const stored = localStorage.getItem("user");
-        const userData = JSON.parse(stored);
         let cid = cartId;
 
         // Si no tiene cartId, crear uno
         if (!cid) {
           const newCart = await createCart();
-          cid = newCart.cart.id;
+          cid = normalizeId(newCart.cart.id);
+          if (!cid) throw new Error("El backend no devolvio un cartId valido");
           setCartId(cid);
         }
 
-        await addProductToCart(cid, product.id);
-        // Actualizamos el estado local
-        setCart((prev) => {
-          const existing = prev.find((p) => p.product?.id === product.id);
-          if (existing) {
-            return prev.map((p) =>
-              p.product?.id === product.id
-                ? { ...p, quantity: p.quantity + 1 }
-                : p
-            );
-          }
-          return [...prev, { product, quantity: 1 }];
-        });
+        const data = await addProductToCart(cid, product.id);
+        setCart(data.cart.products ?? []);
       } catch (err) {
         console.error("Error agregando al carrito:", err);
       }
@@ -98,24 +99,49 @@ export function CartProvider({ children }) {
   };
 
   // Quitar producto
-  const removeFromCart = (productId) => {
+  const removeFromCart = async (productId) => {
+    if (user && cartId) {
+      try {
+        const data = await removeProductFromCart(cartId, productId);
+        setCart(data.cart.products ?? []);
+      } catch (err) {
+        console.error("Error eliminando producto del carrito:", err);
+      }
+      return;
+    }
+
     setCart((prev) => {
       const updated = prev.filter((p) => p.product?.id !== productId);
-      if (!user) saveGuestCart(updated);
+      saveGuestCart(updated);
       return updated;
     });
   };
 
   // Cambiar cantidad
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = async (productId, quantity) => {
     if (quantity <= 0) return removeFromCart(productId);
+
+    if (user && cartId) {
+      try {
+        const data = await updateProductQuantity(cartId, productId, quantity);
+        setCart(data.cart.products ?? []);
+      } catch (err) {
+        console.error("Error actualizando cantidad:", err);
+      }
+      return;
+    }
+
     setCart((prev) => {
       const updated = prev.map((p) =>
         p.product?.id === productId ? { ...p, quantity } : p
       );
-      if (!user) saveGuestCart(updated);
+      saveGuestCart(updated);
       return updated;
     });
+  };
+
+  const clearCart = () => {
+    setCart([]);
   };
 
   // Fusionar carrito invitado al loguearse
@@ -127,6 +153,9 @@ export function CartProvider({ children }) {
     for (const item of items) {
       try {
         await addProductToCart(cid, item.product.id);
+        if (item.quantity > 1) {
+          await updateProductQuantity(cid, item.product.id, item.quantity);
+        }
       } catch (err) {
         console.error("Error mergeando producto:", err);
       }
@@ -145,7 +174,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, cartId, addToCart, removeFromCart, updateQuantity, mergeCart, totalItems, totalPrice }}
+      value={{ cart, cartId, addToCart, removeFromCart, updateQuantity, clearCart, mergeCart, totalItems, totalPrice }}
     >
       {children}
     </CartContext.Provider>

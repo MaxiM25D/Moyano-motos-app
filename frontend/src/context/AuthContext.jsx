@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { logoutUser } from "../services/authService";
+import { getCurrentUser, logoutUser } from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -8,11 +8,32 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false); // ← nuevo
 
 
-  // Al cargar la app, revisamos si hay usuario guardado
+  // Al cargar la app, validamos la sesion guardada contra el backend.
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
-    setReady(true); // ← marca que ya terminó de cargar
+    const restoreSession = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("user");
+        setReady(true);
+        return;
+      }
+
+      try {
+        const data = await getCurrentUser();
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } catch (error) {
+        console.error("La sesion guardada ya no es valida:", error);
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      } finally {
+        setReady(true);
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const login = (userData) => {
@@ -21,10 +42,15 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await logoutUser();
-    setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("No se pudo notificar el logout al backend:", error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    }
   };
   // No renderiza nada hasta que no cargó el estado
   if (!ready) return null;

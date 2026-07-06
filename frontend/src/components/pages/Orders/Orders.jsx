@@ -1,108 +1,128 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FiChevronRight, FiPackage } from "react-icons/fi";
 import { getMyOrders } from "../../../services/order.service";
 import "./Orders.css";
+
+const statusLabels = {
+  pending: "Pendiente",
+  paid: "Pagada",
+  shipped: "En camino",
+  delivered: "Entregada",
+  cancelled: "Cancelada",
+};
 
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadOrders();
-  }, []);
+  const [error, setError] = useState("");
 
   const loadOrders = async () => {
+    setLoading(true);
+    setError("");
+
     try {
       const data = await getMyOrders();
-      setOrders(data.orders);
-    } catch (error) {
-      console.error("Error cargando órdenes:", error);
+      setOrders(data.orders ?? []);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+        requestError.response?.data?.error ||
+        "No pudimos cargar tus compras."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
   if (loading) {
-    return <h2>Cargando órdenes...</h2>;
+    return <p className="orders-state">Cargando tus compras...</p>;
   }
 
-return (
-  <section className="orders">
-    <h1>Mis órdenes</h1>
+  return (
+    <section className="orders">
+      <header className="orders-header">
+        <div>
+          <p className="orders-eyebrow">Historial de compras</p>
+          <h1>Mis ordenes</h1>
+        </div>
+        {!error && orders.length > 0 && (
+          <span className="orders-count">{orders.length} {orders.length === 1 ? "compra" : "compras"}</span>
+        )}
+      </header>
 
-    {orders.length === 0 ? (
-      <p>No tenés compras realizadas.</p>
-    ) : (
-      orders.map((order) => (
-        <article className="order-card" key={order.id}>
-          <h2>Orden #{order.id}</h2>
+      {error && (
+        <div className="orders-state orders-error">
+          <p>{error}</p>
+          <button type="button" onClick={loadOrders}>Reintentar</button>
+        </div>
+      )}
 
-          <p>
-            <strong>Estado:</strong> {order.status}
-          </p>
+      {!error && orders.length === 0 && (
+        <div className="orders-state orders-empty">
+          <FiPackage aria-hidden="true" />
+          <h2>Todavia no realizaste compras</h2>
+          <Link to="/productos">Ver productos</Link>
+        </div>
+      )}
 
-          <p>
-            <strong>Fecha:</strong>{" "}
-            {new Date(order.createdAt).toLocaleDateString("es-AR")}
-          </p>
+      {!error && orders.length > 0 && (
+        <div className="orders-list">
+          {orders.map((order) => {
+            const firstItem = order.items[0];
+            const extraItems = order.items.length - 1;
 
-          <p>
-            <strong>Total:</strong> ${order.total.toLocaleString()}
-          </p>
+            return (
+              <article className="order-card" key={order.id}>
+                <div className="order-card-header">
+                  <div>
+                    <time dateTime={order.createdAt}>
+                      {new Date(order.createdAt).toLocaleDateString("es-AR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </time>
+                    <p>Orden #{order.id}</p>
+                  </div>
+                  <span className={`order-status order-status-${order.status}`}>
+                    {statusLabels[order.status] ?? order.status}
+                  </span>
+                </div>
 
-          <h3>Productos</h3>
+                <div className="order-card-body">
+                  <div className="order-product-summary">
+                    <FiPackage aria-hidden="true" />
+                    <div>
+                      <h2>{firstItem?.title ?? "Compra LUNEK"}</h2>
+                      <p>
+                        {firstItem?.quantity ?? 0} {firstItem?.quantity === 1 ? "unidad" : "unidades"}
+                        {extraItems > 0 && ` y ${extraItems} ${extraItems === 1 ? "producto mas" : "productos mas"}`}
+                      </p>
+                    </div>
+                  </div>
 
-          <ul>
-            {order.items.map((item) => (
-              <li key={item.product}>
-                <strong>{item.title}</strong>
+                  <div className="order-total">
+                    <span>Total</span>
+                    <strong>${order.total.toLocaleString("es-AR")}</strong>
+                  </div>
 
-                <br />
-
-                Cantidad: {item.quantity}
-
-                <br />
-
-                Precio: ${item.price.toLocaleString()}
-
-                <br />
-
-                Subtotal: ${item.subtotal.toLocaleString()}
-              </li>
-            ))}
-          </ul>
-
-          <h3>Datos de envío</h3>
-
-          <p>
-            {order.shipping.full_name}
-          </p>
-
-          <p>
-            {order.shipping.address}
-          </p>
-
-          <p>
-            {order.shipping.city}, {order.shipping.province}
-          </p>
-
-          <p>
-            CP: {order.shipping.zip_code}
-          </p>
-
-          <p>
-            Tel: {order.shipping.phone}
-          </p>
-
-          {order.shipping.notes && (
-            <p>
-              <strong>Notas:</strong> {order.shipping.notes}
-            </p>
-          )}
-        </article>
-      ))
-    )}
-  </section>
-);
+                  <Link className="order-detail-link" to={`/orders/${order.id}`} aria-label={`Ver orden ${order.id}`}>
+                    Ver detalle
+                    <FiChevronRight aria-hidden="true" />
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
 }
 
 export default Orders;

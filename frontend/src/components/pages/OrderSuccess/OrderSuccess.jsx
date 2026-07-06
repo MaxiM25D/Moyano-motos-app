@@ -1,16 +1,36 @@
-import { Link, useLocation, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getOrderById } from "../../../services/order.service";
 import "./OrderSuccess.css";
 
 function OrderSuccess() {
+    const { id } = useParams();
+    const [order, setOrder] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const { state } = useLocation();
+    useEffect(() => {
+        const loadOrder = async () => {
+            try {
+                const data = await getOrderById(id);
+                setOrder(data.order);
+            } catch (requestError) {
+                setError(
+                    requestError.response?.data?.message ||
+                    requestError.response?.data?.error ||
+                    "No se pudo cargar la orden."
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    // Si el usuario entra manualmente a la URL
-    if (!state?.order) {
-        return <Navigate to="/" replace />;
-    }
+        loadOrder();
+    }, [id]);
 
-    const { order } = state;
+    if (loading) return <p className="order-success">Cargando orden...</p>;
+    if (error) return <p className="order-success">{error}</p>;
+    if (!order) return null;
 
     return (
         <section className="order-success">
@@ -43,7 +63,7 @@ function OrderSuccess() {
 
                 <div className="success-buttons">
 
-                    <Link to="/my-orders">
+                    <Link to="/orders">
                         Ver mis órdenes
                     </Link>
 

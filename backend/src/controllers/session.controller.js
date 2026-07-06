@@ -32,9 +32,9 @@ export const registerUser = async (req, res) => {
     const newCart = await cartRepository.createCart(newUser._id);
 
     // Y actualizás el usuario con el cart
-    await userService.updateUser(newUser._id, { cart: newCart._id });
+    const userWithCart = await userService.updateUser(newUser._id, { cart: newCart._id });
 
-    res.status(201).json({ message: "Usuario registrado correctamente", user: new UserDTO(newUser) });
+    res.status(201).json({ message: "Usuario registrado correctamente", user: new UserDTO(userWithCart) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -54,6 +54,13 @@ export const logoutUser = (_req, res) => {
   res.json({ message: "Logout exitoso" });
 };
 
-export const currentUser = (req, res) => {
-  res.json({ user: new UserDTO(req.user) });
+export const currentUser = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.user.sub);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    res.json({ user: new UserDTO(user) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

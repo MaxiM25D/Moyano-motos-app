@@ -5,7 +5,7 @@ import { createOrder } from "../../../services/order.service";
 import "./Checkout.css";
 
 function Checkout() {
-  const { cart, cartId, totalPrice } = useCart();
+  const { cart, cartId, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
 
   const [shipping, setShipping] = useState({
@@ -28,25 +28,33 @@ function Checkout() {
   const handleSubmit = async (e) => {
   e.preventDefault();
 
+  if (typeof cartId !== "string" || !cartId.trim()) {
+    alert("No se pudo identificar el carrito. Volve al carrito e intenta nuevamente.");
+    return;
+  }
+
   try {
     const response = await createOrder({
-      cartId,
+      cartId: cartId.trim(),
       shipping,
     });
 
    /*  alert("¡Compra realizada con éxito!"); */
 
-    console.log(response);
-
+    clearCart();
     navigate(`/order-success/${response.order.id}`);
 
   } catch (error) {
     console.error(error);
 
-    alert(
-      error.response?.data?.message ||
-      "No se pudo completar la compra."
-    );
+    const responseData = error.response?.data;
+    const errorMessage =
+      responseData?.message ||
+      responseData?.error ||
+      responseData?.errors?.join("\n") ||
+      "No se pudo completar la compra.";
+
+    alert(errorMessage);
   }
 };
 

@@ -47,7 +47,7 @@ function Inicio({ greeting }) {
 
           <Link
             to={`/producto/${prod.id}`}
-            className="btn-detalle"
+            className="btn-detail"
           >
             Ver Detalle
           </Link>

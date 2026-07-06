@@ -37,6 +37,7 @@ function ItemDetailContainer() {
         <h2 className="product-detail-title">{product.title}</h2>
         <p className="product-detail-price">${product.price}</p>
         <p className="product-detail-category">{product.category}</p>
+        <p className="product-detail-stock">Stock: {product.stock}</p>
         <p className="product-detail-description">{product.description}</p>
         <button className="btn-add-cart" onClick={() => addToCart(product)}>
           Agregar al carrito
