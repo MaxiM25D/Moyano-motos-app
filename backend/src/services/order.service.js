@@ -1,6 +1,7 @@
 import { OrderRepository } from "../repositories/order.repository.js";
 import { CartRepository } from "../repositories/cart.repository.js";
 import { ProductRepository } from "../repositories/product.repository.js";
+import { HttpError } from "../utils/httpError.js";
 
 const orderRepository = new OrderRepository();
 const cartRepository = new CartRepository();
@@ -9,14 +10,14 @@ const productRepository = new ProductRepository();
 export class OrderService {
   async createOrder(userId, cartId, shipping) {
     const cart = await cartRepository.getCartById(cartId);
-    if (!cart) throw new Error("Carrito no encontrado");
+    if (!cart) throw new HttpError("Carrito no encontrado", 404);
 
     if (cart.user.toString() !== userId) {
-      throw new Error("No tenes permiso para comprar este carrito");
+      throw new HttpError("No tenes permiso para comprar este carrito", 403);
     }
 
     if (!cart.products.length) {
-      throw new Error("El carrito esta vacio");
+      throw new HttpError("El carrito esta vacio", 400);
     }
 
     const items = [];
@@ -25,9 +26,9 @@ export class OrderService {
     for (const item of cart.products) {
       const product = item.product;
 
-      if (!product) throw new Error("Producto no encontrado en el carrito");
+      if (!product) throw new HttpError("Producto no encontrado en el carrito", 404);
       if (product.stock < item.quantity) {
-        throw new Error(`Stock insuficiente para ${product.title}`);
+        throw new HttpError(`Stock insuficiente para ${product.title}`, 400);
       }
 
       items.push({

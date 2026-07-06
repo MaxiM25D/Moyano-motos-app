@@ -4,6 +4,9 @@ import Footer from "./components/Footer/Footer";
 import Inicio from "./components/pages/Inicio/Inicio.jsx";
 import Contacto from "./components/pages/Contacto/Contacto.jsx";
 import Cart from "./components/pages/Cart/Cart.jsx";
+import Checkout from "./components/pages/Checkout/Checkout";
+import Orders from "./components/pages/Orders/Orders";
+import OrderSuccess from "./components/pages/OrderSuccess/OrderSuccess.jsx";
 import Login from "./components/Login/Login.jsx";
 import Register from "./components/Register/Register.jsx";
 import ItemDetailContainer from "./components/ItemDetailContainer/ItemDetailContainer";
@@ -49,9 +52,17 @@ function App() {
 
             {/* Rutas de contacto*/}
             <Route path="/contacto" element={<Contacto greeting="CONTACTANOS" />} />
+
             {/* Ruta para carrito de compras */}
             <Route path="/cart" element={<Cart/>} />
-            
+            {/* Ruta para checkout */}
+            <Route path="/checkout" element={<Checkout />} />
+            {/* Ruta para mis órdenes */}
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:id" element={<OrderDetail />} />
+            {/* Ruta para orden exitosa */}
+            <Route path="/order-success/:id" element={<OrderSuccess />}/>   
+
             {/* Rutas de autenticación */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

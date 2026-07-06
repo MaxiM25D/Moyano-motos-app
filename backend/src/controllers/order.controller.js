@@ -2,6 +2,10 @@ import { OrderService } from "../services/order.service.js";
 import { OrderDTO }     from "../dto/order.dto.js";
  
 const orderService = new OrderService();
+
+const handleOrderError = (res, error) => {
+  res.status(error.status || 500).json({ error: error.message });
+};
  
 // Usuario crea una orden desde su carrito
 export const createOrder = async (req, res) => {
@@ -15,7 +19,7 @@ export const createOrder = async (req, res) => {
     const order = await orderService.createOrder(userId, cartId, shipping);
     res.status(201).json({ message: "Orden creada", order: new OrderDTO(order) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleOrderError(res, error);
   }
 };
  
@@ -26,7 +30,7 @@ export const getMyOrders = async (req, res) => {
     const orders = await orderService.getOrdersByUserId(userId);
     res.json({ orders: orders.map((o) => new OrderDTO(o)) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleOrderError(res, error);
   }
 };
  
@@ -46,7 +50,7 @@ export const getOrderById = async (req, res) => {
 
     res.json({ order: new OrderDTO(order) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleOrderError(res, error);
   }
 };
  
@@ -56,7 +60,7 @@ export const getAllOrders = async (req, res) => {
     const orders = await orderService.getAllOrders();
     res.json({ orders: orders.map((o) => new OrderDTO(o)) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleOrderError(res, error);
   }
 };
  
@@ -71,6 +75,6 @@ export const updateOrderStatus = async (req, res) => {
     const order = await orderService.updateOrderStatus(req.params.id, status);
     res.json({ message: "Estado actualizado", order: new OrderDTO(order) });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleOrderError(res, error);
   }
 };

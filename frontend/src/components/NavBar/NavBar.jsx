@@ -98,8 +98,9 @@ function NavBar() {
             <Link to="/login" className="btn-login">LOGIN</Link>
           )}
         </div>
-
-        <CartWidget />
+        
+        
+        <Link to="/cart" className="cart-link"><CartWidget /></Link>
 
       </nav>
     </header>

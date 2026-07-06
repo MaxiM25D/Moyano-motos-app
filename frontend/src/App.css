@@ -1,23 +1,15 @@
 
-#root {
-  max-width: 100px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-header {
-  height: 70px;
-}
-
 footer {
-  height: 60px; 
+  height: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .main-content {
   flex: 1;
+  width: 100%;
   padding-top: 70px;
-  padding-bottom: 60px;
-  box-sizing: border-box;
-  background-color: #f5eded;
+  background: #f5eded;
 }
