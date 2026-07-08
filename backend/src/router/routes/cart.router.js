@@ -19,3 +19,4 @@ router.put("/:cid/product/:pid", authMiddleware, validate(updateCartQuantitySche
 router.delete("/:cid/product/:pid", authMiddleware, removeProductFromCart);
 
 export default router;
+

@@ -26,4 +26,12 @@ export class OrderRepository {
   updateOrderPayment(id, payment_id, status) {
     return orderDAO.updatePayment(id, payment_id, status);
   }
+
+  updatePaymentPreference(id, preferenceId) {
+    return orderDAO.updatePaymentPreference(id, preferenceId);
+  }
+
+  updatePaymentResult(id, paymentData) {
+    return orderDAO.updatePaymentResult(id, paymentData);
+  }
 }

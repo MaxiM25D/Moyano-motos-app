@@ -45,7 +45,13 @@ export class OrderService {
       user: userId,
       items,
       shipping,
-      total
+      total,
+      payment: {
+        provider: "mercadopago",
+        status: "pending"
+      },
+      stock_status: "reserved",
+      stock_expires_at: new Date(Date.now() + 30 * 60 * 1000)
     });
 
     for (const item of cart.products) {
@@ -78,5 +84,13 @@ export class OrderService {
 
   updateOrderPayment(id, payment_id, status) {
     return orderRepository.updateOrderPayment(id, payment_id, status);
+  }
+
+  updatePaymentPreference(id, preferenceId) {
+    return orderRepository.updatePaymentPreference(id, preferenceId);
+  }
+
+  updatePaymentResult(id, paymentData) {
+    return orderRepository.updatePaymentResult(id, paymentData);
   }
 }
