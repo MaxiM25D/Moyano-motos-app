@@ -1,29 +1,68 @@
 import { UserRepository } from "../repositories/user.repository.js";
+import { createHash } from "../utils/bcrypt.js";
+import { HttpError } from "../utils/httpError.js";
 
 const userRepository = new UserRepository();
+
+const validateId = (id) => {
+  const parsedId = Number(id);
+  if (!Number.isInteger(parsedId) || parsedId <= 0) {
+    throw new HttpError("ID de usuario invalido", 400);
+  }
+  return parsedId;
+};
 
 export class UserService {
   getUsers() {
     return userRepository.getUsers();
   }
 
-  getUserById(id) {
-    return userRepository.getUserById(id);
+  async getUserById(id) {
+    validateId(id);
+
+    const user = await userRepository.getUserById(id);
+    if (!user) throw new HttpError("Usuario no encontrado", 404);
+
+    return user;
   }
 
-  getUserByEmail(email) {
-    return userRepository.getUserByEmail(email);
+  async createUser(data) {
+    const existingUser = await userRepository.getUserByEmail(data.email);
+    if (existingUser) throw new HttpError("Ya existe un usuario con ese email", 409);
+
+    return userRepository.createUser({
+      ...data,
+      password: createHash(data.password)
+    });
   }
 
-  createUser(data) {
-    return userRepository.createUser(data);
+  async createFirstAdmin(data) {
+    const usersCount = await userRepository.countUsers();
+    if (usersCount > 0) {
+      throw new HttpError("El usuario inicial ya fue creado", 409);
+    }
+
+    return this.createUser({
+      ...data,
+      role: "ADMIN"
+    });
   }
 
-  updateUser(id, data) {
-    return userRepository.updateUser(id, data);
-  }
+  async updateUser(id, data) {
+    validateId(id);
 
-  deleteUser(id) {
-    return userRepository.deleteUser(id);
+    const user = await userRepository.getUserById(id);
+    if (!user) throw new HttpError("Usuario no encontrado", 404);
+
+    if (data.email && data.email !== user.email) {
+      const existingUser = await userRepository.getUserByEmail(data.email);
+      if (existingUser) throw new HttpError("Ya existe un usuario con ese email", 409);
+    }
+
+    const updateData = data.password
+      ? { ...data, password: createHash(data.password) }
+      : data;
+
+    return userRepository.updateUser(id, updateData);
   }
 }

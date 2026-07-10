@@ -31,86 +31,36 @@ backend/
 ├── server.js
 └── package.json
 
-MongoDB – Colecciones
-Users
-{
-first_name,
-last_name,
-email,
-password,
-role: "user" | "admin",
-cart: ObjectId
-}
-
-Products
-{
-title,
-description,
-price,
-stock,
-category,
-thumbnail
-}
-
-Carts
-{
-products: [
-{
-product: ObjectId,
-quantity: Number
-}
-]
-}
-
-<!--  -->Separación de responsabilidades <!--  -->
-
-Model → solo DB
-
-Manager → lógica de negocio
-
-Controller → maneja request/response
-
-Route → conecta endpoint con controller
-
-Frontend → solo consume JSON
-
+Frontend
+────────────
 React
-↓
-productService
-↓
-api.js (interceptor agrega token)
-↓
-Backend Express
-↓
-MongoDB
-↓
-Devuelve productos
-
+Vite
 React Router
-↓
-useParams() obtiene categoriaId
-↓
-Llama getProductsByCategory()
-↓
-Axios llama al backend
-↓
-Controller lee req.query.category
-↓
-Manager consulta Mongo
-↓
-Mongo devuelve productos filtrados
-↓
-React renderiza
+Axios
 
-PALETAS DE COLORES:
-Base: #E8DED2
+Backend
+────────────
+Node
+Express
+Prisma
 
-Secciones: #D8CFC3
+Base de datos
+────────────
+PostgreSQL
 
-Cards suaves: #CFC3B6
+Autenticación
+────────────
+JWT
 
-Texto principal: #1E1E1E
+Arquitectura
+────────────
+Controller
+Service
+Repository
+Prisma
 
-Dorado detalle: #B89B72
-
-Hover: negro o #B89B72
+Extras
+────────────
+PDF
+Logs
+Validaciones

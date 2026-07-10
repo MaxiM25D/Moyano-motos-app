@@ -1,125 +1,72 @@
 ## Estructura del proyecto
 
-category → accesorios | marroquineria
-subcategory → aros | cadenas | pulseras | piercing | carteras | cintos
-type → sets (solo cuando es conjunto)
+src
+│
+├── config
+├── controllers
+├── dao
+├── dto
+├── middlewares
+├── models
+├── repositories
+├── router
+├── server
+├── services
+├── utils
+└── validators
 
-{
-"title": "Aros Corazón",
-"category": "accesorios",
-"subcategory": "aros",
-"type": null
-}
-Set de cadenas
-{
-"title": "Set Cadena + Pulsera",
-"category": "accesorios",
-"subcategory": "cadenas",
-"type": "sets"
-}
-Cartera
-{
-"title": "Cartera Bandolera",
-"category": "marroquineria",
-"subcategory": "carteras",
-"type": null
-}
+Tenés una separación clara de responsabilidades:
 
-ROUTES → CONTROLLER → MANAGER → MODEL (MongoDB)
--El manager habla con la base.
--El controller habla con el cliente.
-
-ROUTES
-↓
-CONTROLLER (maneja HTTP)
-↓
-MANAGER (habla con Mongo)
-↓
-MODEL (schema Mongoose mongoDB)
-
-Autenticación:
-LOGIN → CONTROLLER → MANAGER → bcrypt → jwt → respuesta
-
-Validación:
-/current → passport jwt strategy → controller
-
-POST /api/carts/:cid/product/:pid
-↓ routes/cart.routes.js
-↓ cart.controller.js
-↓ cart.manager.js
-↓ cart.model.js
-↓ MongoDB
+Controller → recibe la petición.
+Service → lógica de negocio.
+Repository → comunicación con la base.
+DAO → acceso directo a los datos.
+DTO → respuesta al frontend.
+Validators → validaciones.
+Utils → helpers.
 
 backend/
-│
-├── node_modules/
-│
-├── src/
-│ │
-│ ├── config/
-│ │ ├── db/
-│ │ │ └── connect.config.js
-│ │ ├── auth/
-│ │ │ └── passport.config.js
-│ │ └── env.config.js
-│ │
-│ ├── controllers/
-│ │ ├── cart.controller.js
-│ │ ├── product.controller.js
-│ │ ├── user.controller.js
-│ │ └── auth.controller.js
-│ │
-│ ├── managers/
-│ │ ├── cart.manager.js
-│ │ ├── product.manager.js
-│ │ └── user.manager.js
-│ │
-│ ├── middlewares/
-│ │ ├── auth.middleware.js
-│ │ ├── jwt.middleware.js
-│ │ ├── role.middleware.js
-│ │
-│ ├── models/
-│ │ ├── cart.model.js  
-│ │ ├── product.model.js
-│ │ └── user.model.js
-│ │
-│ ├── router/
-│ │ ├── routes/
-│ │ │ ├── cart.router.js  
-│ │ │ ├── product.router.js  
-│ │ │ ├── user.router.js  
-│ │ │ └── auth.router.js
-│ │ └── routes.js  
-│ │
-│ ├── server/
-│ │ └── server.app.js
-│ │
-│ ├── utils/
-│ │ ├── jwt.j
-│ │ └── bcrypt.js
-│ └── app.js
-│
-├── .env
-├── .gitignore
-├── package.json
-└── package-lock.json
+|-- prisma/
+| |-- migrations/
+| | |-- 20260708234125_init/
+| | | +-- migration.sql
+| | +-- migration_lock.toml
+| +-- schema.prisma
+|-- scripts/
+| +-- seedProducts.js
+|-- src/
+| |-- config/
+| |-- controllers/
+| |-- dto/
+| |-- generated/
+| |-- middlewares/
+| |-- repositories/
+| |-- router/
+| | |-- routes/
+| | | |-- auth.router.js
+| | | |-- cart.router.js
+| | | |-- contact.router.js
+| | | |-- order.router.js
+| | | |-- product.router.js
+| | | +-- user.router.js
+| | +-- routes.js
+| |-- routes/
+| |-- server/
+| | +-- server.app.js
+| |-- services/
+| |-- utils/
+| +-- validators/
+|-- app.js
+|-- package.json
+|-- package-lock.json
++-- prisma.config.ts
 
-## MODELO DE PRODUCTOS:
-
-{
-"title": "Aros Corazón Dorado",
-"slug": "aros-corazon-dorado",
-"category": "accesorios",
-"subcategory": "aros",
-"type": null,
-"isFeatured": true,
-"featuredOrder": 1,
-"brand": "LUNEK",
-"tags": ["aros", "accesorio", "dorado"],
-"price": 8500,
-"stock": 10,
-"images": [
-"https://res.cloudinary.com/xxxx/aros.jpg"
-]
-}
+routes Define endpoints HTTP.
+controllers Recibe request/response, no lógica pesada.
+services Casos de uso y reglas de negocio.
+repositories Acceso a Prisma/Base de datos.
+dto Formato de respuestas.
+validators Validación de inputs.
+middlewares Auth, roles, errores, validaciones.
+utils Helpers reutilizables.
+config DB, env, auth, etc.

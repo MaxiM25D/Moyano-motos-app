@@ -13,6 +13,8 @@
     "seed": "node scripts/seedProducts.js"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "bcrypt": "6.0.0",
     "cloudinary": "^1.41.3",
     "connect-mongo": "6.0.0",
@@ -31,7 +33,9 @@
     "passport": "0.7.0",
     "passport-github2": "0.1.12",
     "passport-jwt": "4.0.1",
-    "passport-local": "1.0.0"
+    "passport-local": "1.0.0",
+    "pg": "^8.22.0",
+    "prisma": "^7.8.0"
   },
   "devDependencies": {
     "nodemon": "3.1.11"

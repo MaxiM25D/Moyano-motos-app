@@ -1,29 +1,36 @@
-import { UserDAO } from "../dao/user.dao.js";
-
-const userDAO = new UserDAO();
+import { prisma } from "../config/db/prisma.client.js";
 
 export class UserRepository {
   getUsers() {
-    return userDAO.getAll();
+    return prisma.user.findMany({
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  countUsers() {
+    return prisma.user.count();
   }
 
   getUserById(id) {
-    return userDAO.getById(id);
+    return prisma.user.findUnique({
+      where: { id: Number(id) }
+    });
   }
 
   getUserByEmail(email) {
-    return userDAO.getByEmail(email);
+    return prisma.user.findUnique({
+      where: { email }
+    });
   }
 
   createUser(data) {
-    return userDAO.create(data);
+    return prisma.user.create({ data });
   }
 
   updateUser(id, data) {
-    return userDAO.update(id, data);
-  }
-
-  deleteUser(id) {
-    return userDAO.delete(id);
+    return prisma.user.update({
+      where: { id: Number(id) },
+      data
+    });
   }
 }

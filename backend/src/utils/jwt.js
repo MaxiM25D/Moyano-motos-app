@@ -1,8 +1,9 @@
+import "dotenv/config";
 import jwt from "jsonwebtoken";
 
 export const generateToken = (user) => {
   const payload = {
-    sub: user._id,
+    id: user.id,
     email: user.email,
     role: user.role
   };

@@ -1,18 +1,11 @@
 export class UserDTO {
   constructor(user) {
-    this.first_name = user.first_name;
-    this.last_name  = user.last_name;
-    this.email      = user.email;
-    this.role       = user.role;
-    this.cartId     = user.cart ? user.cart.toString() : null;
-  }
-}
-
-export class CurrentUserDTO {
-  constructor(user) {
-    this.id    = user._id;
-    this.name  = user.first_name;
+    this.id = user.id;
+    this.name = user.name;
     this.email = user.email;
-    this.role  = user.role;
+    this.role = user.role;
+    this.active = user.active;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 }
