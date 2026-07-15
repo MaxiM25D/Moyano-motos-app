@@ -1,72 +1,46 @@
-## Estructura del proyecto
+# Moyano Motos - Backend
 
-src
-│
-├── config
-├── controllers
-├── dao
-├── dto
-├── middlewares
-├── models
-├── repositories
-├── router
-├── server
-├── services
-├── utils
-└── validators
+API REST para administrar clientes, motos, ventas financiadas, cuotas, pagos, recibos, reportes y usuarios.
 
-Tenés una separación clara de responsabilidades:
+## Tecnologias
 
-Controller → recibe la petición.
-Service → lógica de negocio.
-Repository → comunicación con la base.
-DAO → acceso directo a los datos.
-DTO → respuesta al frontend.
-Validators → validaciones.
-Utils → helpers.
+- Node.js y Express.
+- Prisma ORM.
+- PostgreSQL.
+- JWT y roles de usuario.
+- Joi para validaciones.
 
-backend/
-|-- prisma/
-| |-- migrations/
-| | |-- 20260708234125_init/
-| | | +-- migration.sql
-| | +-- migration_lock.toml
-| +-- schema.prisma
-|-- scripts/
-| +-- seedProducts.js
-|-- src/
-| |-- config/
-| |-- controllers/
-| |-- dto/
-| |-- generated/
-| |-- middlewares/
-| |-- repositories/
-| |-- router/
-| | |-- routes/
-| | | |-- auth.router.js
-| | | |-- cart.router.js
-| | | |-- contact.router.js
-| | | |-- order.router.js
-| | | |-- product.router.js
-| | | +-- user.router.js
-| | +-- routes.js
-| |-- routes/
-| |-- server/
-| | +-- server.app.js
-| |-- services/
-| |-- utils/
-| +-- validators/
-|-- app.js
-|-- package.json
-|-- package-lock.json
-+-- prisma.config.ts
+## Arquitectura
 
-routes Define endpoints HTTP.
-controllers Recibe request/response, no lógica pesada.
-services Casos de uso y reglas de negocio.
-repositories Acceso a Prisma/Base de datos.
-dto Formato de respuestas.
-validators Validación de inputs.
-middlewares Auth, roles, errores, validaciones.
-utils Helpers reutilizables.
-config DB, env, auth, etc.
+```text
+src/
+|-- config/
+|-- controllers/
+|-- dto/
+|-- middlewares/
+|-- repositories/
+|-- router/
+|-- server/
+|-- services/
+|-- utils/
++-- validators/
+```
+
+Los controladores manejan HTTP, los servicios contienen las reglas de negocio y los repositorios concentran el acceso a Prisma.
+
+## Variables de entorno
+
+```env
+PORT=8000
+DATABASE_URL=postgresql://usuario:password@localhost:5432/moyano_motos
+JWT_SECRET=una_clave_segura
+SECRET_SESSION=una_clave_segura
+```
+
+## Comandos
+
+```bash
+npm install
+npx prisma migrate dev
+npm run dev
+```
