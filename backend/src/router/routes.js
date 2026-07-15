@@ -6,6 +6,7 @@ import receiptRouter from "../router/routes/receipt.router.js";
 import reportRouter from "../router/routes/report.router.js";
 import saleRouter from "../router/routes/sale.router.js";
 import userRouter from "../router/routes/user.router.js";
+import { sendError } from "../utils/apiResponse.js";
 
 export function initRouters(app) {
   app.use("/api/auth", authRouter);
@@ -19,6 +20,6 @@ export function initRouters(app) {
 
   // 404
   app.use((req, res) => {
-    res.status(404).json({ error: "Route not found" });
+    return sendError(res, { status: 404, message: "Route not found" });
   });
 }

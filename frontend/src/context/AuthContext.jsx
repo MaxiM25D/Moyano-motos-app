@@ -1,33 +1,28 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { getCurrentUser, logoutUser } from "../services/authService";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { getCurrentUser } from "../services/authService.js";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [ready, setReady] = useState(false); // ← nuevo
+  const [ready, setReady] = useState(false);
 
-
-  // Al cargar la app, validamos la sesion guardada contra el backend.
   useEffect(() => {
     const restoreSession = async () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        localStorage.removeItem("user");
         setReady(true);
         return;
       }
 
       try {
-        const data = await getCurrentUser();
-        setUser(data.user);
-        localStorage.setItem("user", JSON.stringify(data.user));
-      } catch (error) {
-        console.error("La sesion guardada ya no es valida:", error);
-        setUser(null);
-        localStorage.removeItem("user");
+        const { user: currentUser } = await getCurrentUser();
+        setUser(currentUser);
+        localStorage.setItem("user", JSON.stringify(currentUser));
+      } catch {
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
       } finally {
         setReady(true);
       }
@@ -36,30 +31,26 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
+  const login = (userData, token) => {
+    localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const logout = async () => {
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("No se pudo notificar el logout al backend:", error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
   };
-  // No renderiza nada hasta que no cargó el estado
-  if (!ready) return null;
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = useMemo(() => ({ user, login, logout }), [user]);
+
+  if (!ready) {
+    return <div className="app-loader" aria-label="Cargando" />;
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

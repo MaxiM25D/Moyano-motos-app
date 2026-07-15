@@ -1,22 +1,11 @@
-import api from "./api";
+import api from "./api.js";
 
-export const registerUser = async (data) => {
-  const response = await api.post("/auth/register", data);
-  return response.data;
-};
-
-export const loginUser = async (data) => {
-  const response = await api.post("/auth/login", data);
-  return response.data;
-};
-
-export const logoutUser = async () => {
-  const response = await api.post("/auth/logout");
-  localStorage.removeItem("token");
-  return response.data;
+export const loginUser = async (credentials) => {
+  const response = await api.post("/auth/login", credentials);
+  return response.data.data;
 };
 
 export const getCurrentUser = async () => {
   const response = await api.get("/auth/current");
-  return response.data;
+  return response.data.data;
 };

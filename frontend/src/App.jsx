@@ -1,80 +1,39 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import NavBar from "./components/NavBar/NavBar";
-import Footer from "./components/Footer/Footer";
-import Inicio from "./components/pages/Inicio/Inicio.jsx";
-import Contacto from "./components/pages/Contacto/Contacto.jsx";
-import Cart from "./components/pages/Cart/Cart.jsx";
-import Checkout from "./components/pages/Checkout/Checkout";
-import Orders from "./components/pages/Orders/Orders";
-import OrderDetail from "./components/pages/Orders/OrderDetail";
-import OrderSuccess from "./components/pages/OrderSuccess/OrderSuccess.jsx";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./components/Login/Login.jsx";
-import Register from "./components/Register/Register.jsx";
-import ItemDetailContainer from "./components/ItemDetailContainer/ItemDetailContainer";
-import ItemListContainer from "./components/ItemListContainer/ItemListContainer";
-import AdminLayout   from "./components/Admin/AdminLayaout/AdminLayout.jsx";
-import AdminProducts from "./components/Admin/pages/AdminProducts/AdminProducts.jsx";
-import AdminUsers    from "./components/Admin/pages/Users/AdminUsers.jsx";
-import ProductForm   from "./components/Admin/ProductForm/ProductForm.jsx";
+import AppLayout from "./components/layout/AppLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
+import Clients from "./pages/Clients/Clients.jsx";
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
+import Motorcycles from "./pages/Motorcycles/Motorcycles.jsx";
+import Sales from "./pages/Sales/Sales.jsx";
+import Installments from "./pages/Installments/Installments.jsx";
+import Receipts from "./pages/Receipts/Receipts.jsx";
+import Reports from "./pages/Reports/Reports.jsx";
+import Users from "./pages/Users/Users.jsx";
 import "./App.css";
 
 function App() {
-
   return (
-    <>
-      <NavBar />
-        <main className="main-content">
-        <Routes>
-            {/* Rutas panel Admin */}
-            <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
-              <Route path="products"          element={<AdminProducts />} />
-              <Route path="products/new"      element={<ProductForm />} />
-              <Route path="products/edit/:id" element={<ProductForm />} />
-              <Route path="users"             element={<AdminUsers />} />
-            </Route>
-
-            {/* Ruta para inicio */}
-            <Route path="/" element={<Inicio greeting="PRODUCTOS DESTACADOS" />} />
-
-            {/* Ruta para listado general de productos */}
-            <Route path="/productos" element={<ItemListContainer />} />
-
-            {/* Categorías */}
-            <Route path="/productos/:category" element={<ItemListContainer />} />
-
-            {/* Subcategorías */}
-            <Route path="/productos/:category/:subcategory" element={<ItemListContainer />} />
-
-            {/* Tipo */}
-            <Route path="/productos/:category/:subcategory/:type" element={<ItemListContainer />} />
-
-            {/* Detalle */}
-            <Route path="/producto/:id" element={<ItemDetailContainer />} />
-
-            {/* Rutas de contacto*/}
-            <Route path="/contacto" element={<Contacto greeting="CONTACTANOS" />} />
-
-            {/* Ruta para carrito de compras */}
-            <Route path="/cart" element={<Cart/>} />
-            {/* Ruta para checkout */}
-            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-            {/* Ruta para mis órdenes */}
-            <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-            <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-            {/* Ruta para orden exitosa */}
-            <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>}/>
-
-            {/* Rutas de autenticación */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-
-            <Route path="*" element={<h2>404 - Página no encontrada</h2>} />
-
-        </Routes>
-      </main>  
-      <Footer className="footer"/>
-    </>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="clientes" element={<Clients />} />
+        <Route path="motos" element={<Motorcycles />} />
+        <Route path="ventas" element={<Sales />} />
+        <Route path="cuotas" element={<Installments />} />
+        <Route path="recibos" element={<Receipts />} />
+        <Route path="reportes" element={<ProtectedRoute roles={["ADMIN", "COLLECTOR"]}><Reports /></ProtectedRoute>} />
+        <Route path="usuarios" element={<ProtectedRoute roles={["ADMIN"]}><Users /></ProtectedRoute>} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -1,49 +1,104 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { loginUser } from "../../services/authService";
-import { useAuth } from "../../context/AuthContext";
-import { useCart } from "../../context/CartContext";
-import "../Login/Login.css";
+import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { getApiError } from "../../services/api.js";
+import { loginUser } from "../../services/authService.js";
+import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
-  const { mergeCart } = useCart();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
       const data = await loginUser({ email, password });
-      localStorage.setItem("token", data.token);
-      login(data.user);
-
-      // Fusionar carrito invitado si existe
-      if (data.user?.cartId) {
-        await mergeCart(data.user.cartId);
-      }
-
+      login(data.user, data.token);
       navigate(location.state?.from || "/", { replace: true });
-    } catch {
-      setError("Email o contraseña incorrectos");
+    } catch (requestError) {
+      setError(getApiError(requestError, "Email o contrasena incorrectos"));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h2>INICIAR SESIÓN</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit">INGRESAR</button>
-      </form>
-    </div>
+    <main className="login-page">
+      <section className="login-brand" aria-label="Moyano Motos">
+        <div className="brand-mark" aria-hidden="true">MM</div>
+        <div>
+          <p className="brand-name">Moyano Motos</p>
+          <p className="brand-copy">Gestion de ventas y cobranzas</p>
+        </div>
+      </section>
+
+      <section className="login-panel">
+        <form className="login-form" onSubmit={handleSubmit}>
+          <header>
+            <p className="login-kicker">Panel de gestion</p>
+            <h1>Bienvenido</h1>
+            <p>Ingresa con tu cuenta para continuar.</p>
+          </header>
+
+          {error && <div className="form-error" role="alert">{error}</div>}
+
+          <label htmlFor="email">Email</label>
+          <div className="input-wrap">
+            <FiMail aria-hidden="true" />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="nombre@empresa.com"
+              autoComplete="email"
+              required
+            />
+          </div>
+
+          <label htmlFor="password">Contrasena</label>
+          <div className="input-wrap">
+            <FiLock aria-hidden="true" />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Tu contrasena"
+              autoComplete="current-password"
+              required
+            />
+            <button
+              className="password-toggle"
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+              title={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
+          <button className="login-submit" type="submit" disabled={loading}>
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }
 

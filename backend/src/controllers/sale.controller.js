@@ -1,34 +1,28 @@
 import { SaleDTO } from "../dto/sale.dto.js";
 import { SaleService } from "../services/sale.service.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const saleService = new SaleService();
-
-const handleError = (res, error) => {
-  const status = error.status || 500;
-  res.status(status).json({ message: error.message });
-};
 
 export const getSales = async (req, res) => {
   try {
     const sales = await saleService.getSales();
-    res.json({
-      message: "Ventas obtenidas",
+    return sendSuccess(res, "Ventas obtenidas", {
       sales: sales.map((sale) => new SaleDTO(sale))
     });
   } catch (error) {
-    handleError(res, error);
+    return sendError(res, error);
   }
 };
 
 export const getSaleById = async (req, res) => {
   try {
     const sale = await saleService.getSaleById(req.params.id);
-    res.json({
-      message: "Venta encontrada",
+    return sendSuccess(res, "Venta encontrada", {
       sale: new SaleDTO(sale)
     });
   } catch (error) {
-    handleError(res, error);
+    return sendError(res, error);
   }
 };
 
@@ -38,11 +32,10 @@ export const createSale = async (req, res) => {
       ...req.body,
       sellerId: req.user.id
     });
-    res.status(201).json({
-      message: "Venta creada",
+    return sendSuccess(res, "Venta creada", {
       sale: new SaleDTO(sale)
-    });
+    }, 201);
   } catch (error) {
-    handleError(res, error);
+    return sendError(res, error);
   }
 };
