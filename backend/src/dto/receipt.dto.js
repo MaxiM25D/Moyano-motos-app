@@ -54,6 +54,8 @@ export class ReceiptDTO {
       payment: payment
         ? {
             amount: payment.amount,
+            interestRate: payment.interestRate,
+            interestAmount: payment.interestAmount,
             method: payment.method,
             paidAt: payment.paidAt,
             notes: payment.notes

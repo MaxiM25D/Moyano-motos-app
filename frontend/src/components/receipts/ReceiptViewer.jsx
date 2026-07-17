@@ -71,6 +71,7 @@ function ReceiptViewer({ receipt, canPrint, onClose, onPrinted }) {
             <section className="receipt-payment-highlight">
               <span>Importe recibido</span>
               <strong>{money.format(Number(data.payment?.amount || 0))}</strong>
+              {Number(data.payment?.interestRate || 0) > 0 && <small>Cuota base: {money.format(Number(data.installment?.amount || 0))} | Interes {data.payment.interestRate}%: {money.format(Number(data.payment.interestAmount || 0))}</small>}
               <small>Medio de pago: {methodLabels[data.payment?.method] || data.payment?.method}</small>
             </section>
 

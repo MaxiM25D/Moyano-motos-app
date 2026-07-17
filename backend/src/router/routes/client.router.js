@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createClient,
+  deleteClient,
   getClientById,
   getClients,
   updateClient
@@ -19,5 +20,6 @@ router.get("/", authMiddleware, getClients);
 router.get("/:id", authMiddleware, getClientById);
 router.post("/", authMiddleware, roleMiddleware("ADMIN", "SELLER"), validate(createClientSchema), createClient);
 router.patch("/:id", authMiddleware, roleMiddleware("ADMIN", "SELLER"), validate(updateClientSchema), updateClient);
+router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteClient);
 
 export default router;

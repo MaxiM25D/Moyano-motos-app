@@ -24,10 +24,15 @@ function PaymentModal({ installment, onClose, onPaid }) {
   const [form, setForm] = useState({
     method: "CASH",
     paidAt: toInputDate(new Date()),
+    interestRate: "0",
     notes: ""
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const baseAmount = Number(installment.amount);
+  const interestRate = Number(form.interestRate || 0);
+  const interestAmount = Math.round(baseAmount * interestRate) / 100;
+  const totalAmount = baseAmount + interestAmount;
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -51,6 +56,7 @@ function PaymentModal({ installment, onClose, onPaid }) {
       const paidInstallment = await payInstallment(installment.id, {
         method: form.method,
         paidAt: form.paidAt,
+        interestRate,
         notes: form.notes.trim()
       });
       onPaid(paidInstallment);
@@ -79,8 +85,12 @@ function PaymentModal({ installment, onClose, onPaid }) {
             {error && <div className="payment-form-error" role="alert">{error}</div>}
 
             <div className="payment-amount-summary">
-              <span>Importe de la cuota</span>
-              <strong>{money.format(Number(installment.amount))}</strong>
+              <span>Total a cobrar</span>
+              <strong>{money.format(totalAmount)}</strong>
+              <div className="payment-interest-summary">
+                <span>Cuota base <b>{money.format(baseAmount)}</b></span>
+                <span>Interes ({interestRate}%) <b>{money.format(interestAmount)}</b></span>
+              </div>
               <small>Vence el {new Intl.DateTimeFormat("es-AR").format(new Date(installment.dueDate))}</small>
             </div>
 
@@ -94,6 +104,10 @@ function PaymentModal({ installment, onClose, onPaid }) {
               <label>
                 <span>Fecha de pago *</span>
                 <input type="date" name="paidAt" value={form.paidAt} onChange={handleChange} required />
+              </label>
+              <label>
+                <span>Interes aplicado (%)</span>
+                <input type="number" name="interestRate" value={form.interestRate} onChange={handleChange} min="0" max="100" step="0.01" inputMode="decimal" />
               </label>
               <label className="payment-notes-field">
                 <span>Observaciones</span>

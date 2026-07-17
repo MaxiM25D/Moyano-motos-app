@@ -42,4 +42,16 @@ export class ClientRepository {
       data
     });
   }
+
+  countSales(id) {
+    return prisma.sale.count({
+      where: { clientId: Number(id) }
+    });
+  }
+
+  deleteClient(id) {
+    return prisma.client.delete({
+      where: { id: Number(id) }
+    });
+  }
 }

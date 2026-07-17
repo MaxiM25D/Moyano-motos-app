@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiEdit2, FiPlus, FiSearch, FiShoppingBag, FiX } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiSearch, FiShoppingBag, FiTrash2, FiX } from "react-icons/fi";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 import MotorcycleFormModal from "../../components/motorcycles/MotorcycleFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getMotorcycles } from "../../services/motorcycleService.js";
+import { deleteMotorcycle, getMotorcycles } from "../../services/motorcycleService.js";
 import "./Motorcycles.css";
 
 function Motorcycles() {
@@ -13,10 +14,13 @@ function Motorcycles() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedMotorcycle, setSelectedMotorcycle] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [motorcycleToDelete, setMotorcycleToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const canManage = ["ADMIN", "SELLER"].includes(user.role);
+  const canDelete = user.role === "ADMIN";
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -63,6 +67,22 @@ function Motorcycles() {
       ? `${motorcycle.brand} ${motorcycle.model} fue actualizada.`
       : `${motorcycle.brand} ${motorcycle.model} fue registrada.`);
     await loadMotorcycles();
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      const deleted = await deleteMotorcycle(motorcycleToDelete.id);
+      setMotorcycleToDelete(null);
+      setNotice(`${deleted.brand} ${deleted.model} fue eliminada.`);
+      await loadMotorcycles();
+    } catch (requestError) {
+      setMotorcycleToDelete(null);
+      setError(getApiError(requestError, "No se pudo eliminar la moto"));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -132,11 +152,14 @@ function Motorcycles() {
                   <td data-label="Motor" className="identifier-cell">{motorcycle.engineNumber || "-"}</td>
                   <td data-label="Color" className="muted-value">{motorcycle.color || "-"}</td>
                   <td className="moto-action-cell">
+                    <div className="moto-row-actions">
                     {canManage && (
                       <button className="moto-edit-button" onClick={() => openEdit(motorcycle)} aria-label={`Editar ${motorcycle.brand} ${motorcycle.model}`} title="Editar moto">
                         <FiEdit2 />
                       </button>
                     )}
+                    {canDelete && <button className="moto-delete-button" onClick={() => setMotorcycleToDelete(motorcycle)} aria-label={`Eliminar ${motorcycle.brand} ${motorcycle.model}`} title="Eliminar moto"><FiTrash2 /></button>}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -159,6 +182,7 @@ function Motorcycles() {
           onSaved={handleSaved}
         />
       )}
+      {motorcycleToDelete && <ConfirmDialog title="Eliminar moto" message={`Se eliminara ${motorcycleToDelete.brand} ${motorcycleToDelete.model}. Solo es posible si no tiene una venta asociada.`} loading={deleting} onCancel={() => setMotorcycleToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

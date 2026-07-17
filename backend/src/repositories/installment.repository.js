@@ -78,6 +78,8 @@ export class InstallmentRepository {
           installmentId: installment.id,
           userId: paymentData.userId,
           amount: paymentData.amount,
+          interestRate: paymentData.interestRate,
+          interestAmount: paymentData.interestAmount,
           method: paymentData.method,
           paidAt: paymentData.paidAt,
           notes: paymentData.notes || null

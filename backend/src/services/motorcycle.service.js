@@ -46,6 +46,20 @@ export class MotorcycleService {
     return motorcycleRepository.updateMotorcycle(id, data);
   }
 
+  async deleteMotorcycle(id) {
+    validateId(id);
+
+    const motorcycle = await motorcycleRepository.getMotorcycleById(id);
+    if (!motorcycle) throw new HttpError("Moto no encontrada", 404);
+
+    const sale = await motorcycleRepository.getSaleByMotorcycleId(id);
+    if (sale) {
+      throw new HttpError("No se puede eliminar una moto con una venta registrada", 409);
+    }
+
+    return motorcycleRepository.deleteMotorcycle(id);
+  }
+
   async validateUniqueFields(data, currentMotorcycleId = null) {
     for (const [field, message] of uniqueFields) {
       if (!data[field]) continue;

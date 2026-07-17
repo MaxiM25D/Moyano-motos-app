@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createMotorcycle,
+  deleteMotorcycle,
   getMotorcycleById,
   getMotorcycles,
   updateMotorcycle
@@ -19,5 +20,6 @@ router.get("/", authMiddleware, getMotorcycles);
 router.get("/:id", authMiddleware, getMotorcycleById);
 router.post("/", authMiddleware, roleMiddleware("ADMIN", "SELLER"), validate(createMotorcycleSchema), createMotorcycle);
 router.patch("/:id", authMiddleware, roleMiddleware("ADMIN", "SELLER"), validate(updateMotorcycleSchema), updateMotorcycle);
+router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteMotorcycle);
 
 export default router;

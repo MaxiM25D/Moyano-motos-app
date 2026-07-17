@@ -169,6 +169,9 @@
 .identifier-cell { color: #5f6b66 !important; font-family: Consolas, monospace; font-size: 11px !important; }
 .muted-value { color: #8a9490; }
 .moto-action-cell { text-align: right; }
+.moto-row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.moto-delete-button { width: 34px; height: 34px; display: inline-grid; place-items: center; border: 1px solid #dce2df; border-radius: 5px; background: white; color: #53605a; }
+.moto-delete-button:hover { border-color: #d9a2a5; color: #b83238; }
 
 .moto-edit-button,
 .moto-modal-close {

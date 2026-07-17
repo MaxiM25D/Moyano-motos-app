@@ -47,3 +47,14 @@ export const updateClient = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+export const deleteClient = async (req, res) => {
+  try {
+    const client = await clientService.deleteClient(req.params.id);
+    return sendSuccess(res, "Cliente eliminado", {
+      client: new ClientDTO(client)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};

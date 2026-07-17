@@ -21,7 +21,7 @@
 .sales-table th:nth-child(5) { width: 12%; }
 .sales-table th:nth-child(6) { width: 15%; }
 .sales-table th:nth-child(7) { width: 10%; }
-.sales-table th:last-child { width: 6%; }
+.sales-table th:last-child { width: 9%; }
 .sales-table td { height: 72px; padding: 10px 13px; border-bottom: 1px solid #edf0ee; overflow: hidden; color: #35413c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .sales-table tbody tr:last-child td { border-bottom: 0; }
 .sales-table tbody tr:hover { background: #fbfcfb; }
@@ -36,8 +36,10 @@
 .sale-status.paid { background: #e5f2ed; color: #167052; }
 .sale-status.cancelled { background: #f1f2f1; color: #6f7975; }
 .sale-action-cell { text-align: right; }
+.sale-row-actions { display: flex; justify-content: flex-end; gap: 6px; }
 .sale-action-cell button, .sale-modal-close { width: 34px; height: 34px; display: inline-grid; place-items: center; border: 1px solid #dce2df; border-radius: 5px; background: white; color: #53605a; }
 .sale-action-cell button:hover { border-color: #c4a575; color: #8a5a16; }
+.sale-action-cell .sale-delete-button:hover { border-color: #d9a2a5; color: #b83238; }
 
 .sales-loading { min-width: 950px; padding: 14px 16px; }
 .sales-loading span, .sale-options-loading span { height: 54px; display: block; margin-bottom: 9px; border-radius: 4px; background: linear-gradient(90deg, #f0f2f1, #f8f9f8, #f0f2f1); background-size: 200% 100%; animation: shimmer 1.4s infinite; }

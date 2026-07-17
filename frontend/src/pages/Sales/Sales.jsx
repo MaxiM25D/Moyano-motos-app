@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiEye, FiFileText, FiPlus, FiSearch, FiX } from "react-icons/fi";
+import { FiEye, FiFileText, FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 import SaleDetailModal from "../../components/sales/SaleDetailModal.jsx";
 import SaleFormModal from "../../components/sales/SaleFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getSales } from "../../services/saleService.js";
+import { deleteSale, getSales } from "../../services/saleService.js";
 import "./Sales.css";
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -31,10 +32,13 @@ function Sales() {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [saleToDelete, setSaleToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const canCreate = ["ADMIN", "SELLER"].includes(user.role);
+  const canDelete = user.role === "ADMIN";
 
   const loadSales = useCallback(async () => {
     setLoading(true);
@@ -84,6 +88,23 @@ function Sales() {
     setSelectedSale(sale);
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      const deleted = await deleteSale(saleToDelete.id);
+      setSaleToDelete(null);
+      setSelectedSale((current) => current?.id === deleted.id ? null : current);
+      setNotice(`La venta #${deleted.id} fue eliminada.`);
+      await loadSales();
+    } catch (requestError) {
+      setSaleToDelete(null);
+      setError(getApiError(requestError, "No se pudo eliminar la venta"));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <section className="sales-page">
       <header className="sales-header">
@@ -121,7 +142,7 @@ function Sales() {
                     <td data-label="Plan"><strong>{sale.installmentPlan}</strong> cuotas<small className="paid-progress">{paid} pagadas</small></td>
                     <td data-label="Financiado" className="sale-money">{money.format(Number(sale.financedAmount))}</td>
                     <td data-label="Estado"><span className={`sale-status ${sale.status.toLowerCase()}`}>{statusLabels[sale.status]}</span></td>
-                    <td className="sale-action-cell"><button onClick={() => setSelectedSale(sale)} aria-label={`Ver venta ${sale.id}`} title="Ver detalle"><FiEye /></button></td>
+                    <td className="sale-action-cell"><div className="sale-row-actions"><button onClick={() => setSelectedSale(sale)} aria-label={`Ver venta ${sale.id}`} title="Ver detalle"><FiEye /></button>{canDelete && <button className="sale-delete-button" onClick={() => setSaleToDelete(sale)} aria-label={`Eliminar venta ${sale.id}`} title="Eliminar venta"><FiTrash2 /></button>}</div></td>
                   </tr>
                 );
               })}
@@ -134,6 +155,7 @@ function Sales() {
 
       {createOpen && <SaleFormModal soldMotorcycleIds={soldMotorcycleIds} onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
       {selectedSale && <SaleDetailModal sale={selectedSale} onClose={() => setSelectedSale(null)} />}
+      {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.id}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

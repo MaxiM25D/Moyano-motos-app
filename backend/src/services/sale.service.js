@@ -97,4 +97,13 @@ export class SaleService {
       installments
     );
   }
+
+  async deleteSale(id) {
+    validateId(id, "ID de venta");
+
+    const sale = await saleRepository.getSaleById(id);
+    if (!sale) throw new HttpError("Venta no encontrada", 404);
+
+    return saleRepository.deleteSale(id);
+  }
 }

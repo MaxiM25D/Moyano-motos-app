@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiEdit2, FiPlus, FiSearch, FiUser, FiUsers, FiX } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiSearch, FiTrash2, FiUser, FiUsers, FiX } from "react-icons/fi";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
 import ClientFormModal from "../../components/clients/ClientFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getClients } from "../../services/clientService.js";
+import { deleteClient, getClients } from "../../services/clientService.js";
 import "./Clients.css";
 
 const dateFormatter = new Intl.DateTimeFormat("es-AR", {
@@ -19,10 +20,13 @@ function Clients() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const canManage = ["ADMIN", "SELLER"].includes(user.role);
+  const canDelete = user.role === "ADMIN";
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -67,6 +71,22 @@ function Clients() {
     setSelectedClient(null);
     setNotice(wasEditing ? `${client.name} fue actualizado.` : `${client.name} fue registrado.`);
     await loadClients();
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      const deleted = await deleteClient(clientToDelete.id);
+      setClientToDelete(null);
+      setNotice(`${deleted.name} fue eliminado.`);
+      await loadClients();
+    } catch (requestError) {
+      setClientToDelete(null);
+      setError(getApiError(requestError, "No se pudo eliminar el cliente"));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -134,11 +154,14 @@ function Clients() {
                   <td data-label="Direccion" className="muted-cell">{client.address || "Sin direccion"}</td>
                   <td data-label="Registro" className="muted-cell">{dateFormatter.format(new Date(client.createdAt))}</td>
                   <td className="action-cell">
+                    <div className="row-actions">
                     {canManage && (
                       <button className="edit-button" onClick={() => openEdit(client)} aria-label={`Editar a ${client.name}`} title="Editar cliente">
                         <FiEdit2 />
                       </button>
                     )}
+                    {canDelete && <button className="delete-icon-button" onClick={() => setClientToDelete(client)} aria-label={`Eliminar a ${client.name}`} title="Eliminar cliente"><FiTrash2 /></button>}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -161,6 +184,7 @@ function Clients() {
           onSaved={handleSaved}
         />
       )}
+      {clientToDelete && <ConfirmDialog title="Eliminar cliente" message={`Se eliminara a ${clientToDelete.name}. Esta accion no se puede deshacer.`} loading={deleting} onCancel={() => setClientToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

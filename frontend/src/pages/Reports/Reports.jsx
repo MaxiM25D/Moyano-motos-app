@@ -157,7 +157,7 @@ function Reports() {
                 <td data-label="Cuota">N.º {payment.installment?.number} · Venta #{payment.installment?.saleId}</td>
                 <td data-label="Medio">{methodLabels[payment.method] || payment.method}</td>
                 <td data-label="Cobrador">{payment.user?.name || "-"}</td>
-                <td data-label="Importe" className="report-money">{money.format(Number(payment.amount))}</td>
+                <td data-label="Importe" className="report-money">{money.format(Number(payment.amount))}{Number(payment.interestRate || 0) > 0 && <small>Interes {payment.interestRate}%</small>}</td>
               </tr>)}
             </tbody></table>
           ) : <div className="report-empty"><FiDollarSign /><strong>Sin cobranzas en el periodo</strong><span>Selecciona otro rango de fechas para consultar.</span></div>}

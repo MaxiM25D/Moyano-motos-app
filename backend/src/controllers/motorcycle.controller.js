@@ -47,3 +47,14 @@ export const updateMotorcycle = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+export const deleteMotorcycle = async (req, res) => {
+  try {
+    const motorcycle = await motorcycleService.deleteMotorcycle(req.params.id);
+    return sendSuccess(res, "Moto eliminada", {
+      motorcycle: new MotorcycleDTO(motorcycle)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};

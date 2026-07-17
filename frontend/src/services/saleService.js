@@ -9,3 +9,8 @@ export const createSale = async (sale) => {
   const response = await api.post("/sales", sale);
   return response.data.data.sale;
 };
+
+export const deleteSale = async (id) => {
+  const response = await api.delete(`/sales/${id}`);
+  return response.data.data.sale;
+};

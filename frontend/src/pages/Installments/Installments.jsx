@@ -126,7 +126,10 @@ function Installments() {
                     <td data-label="Moto"><div className="installment-moto"><strong>{item.sale?.motorcycle?.brand} {item.sale?.motorcycle?.model}</strong><small>{item.sale?.motorcycle?.domain || `Venta #${item.saleId}`}</small></div></td>
                     <td data-label="Cuota"><strong>{item.number}</strong><span> / {item.sale?.installmentPlan || "-"}</span></td>
                     <td data-label="Vencimiento" className={overdue ? "overdue-date" : ""}>{date.format(new Date(item.dueDate))}</td>
-                    <td data-label="Importe" className="installment-money">{money.format(Number(item.amount))}</td>
+                    <td data-label="Importe" className="installment-money">
+                      {money.format(Number(item.status === "PAID" ? item.payment?.amount || item.amount : item.amount))}
+                      {Number(item.payment?.interestRate || 0) > 0 && <small>Incluye {item.payment.interestRate}% de interes</small>}
+                    </td>
                     <td data-label="Estado"><span className={`installment-status ${visualStatus.toLowerCase()}`}>{visualStatus === "OVERDUE" ? "Vencida" : visualStatus === "PAID" ? "Pagada" : visualStatus === "CANCELLED" ? "Cancelada" : "Pendiente"}</span></td>
                     <td className="installment-action-cell">
                       {item.status === "PENDING" && canCollect ? <button className="collect-button" onClick={() => setSelectedInstallment(item)}><FiDollarSign />Cobrar</button> : item.status === "PAID" ? <span className="paid-mark"><FiCheckCircle />{item.payment?.method === "TRANSFER" ? "Transferencia" : item.payment?.method === "CARD" ? "Tarjeta" : item.payment?.method === "OTHER" ? "Otro" : "Efectivo"}</span> : "-"}

@@ -150,7 +150,7 @@
 .clients-table th:nth-child(3) { width: 17%; }
 .clients-table th:nth-child(4) { width: 22%; }
 .clients-table th:nth-child(5) { width: 15%; }
-.clients-table th:last-child { width: 7%; }
+.clients-table th:last-child { width: 10%; }
 
 .clients-table td {
   height: 68px;
@@ -204,6 +204,7 @@
 .action-cell { text-align: right; }
 
 .edit-button,
+.delete-icon-button,
 .modal-close {
   width: 34px;
   height: 34px;
@@ -216,6 +217,8 @@
 }
 
 .edit-button:hover { border-color: #9ab8ab; color: #167052; }
+.row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.delete-icon-button:hover { border-color: #d9a2a5; color: #b83238; }
 
 .clients-loading { padding: 14px 16px; }
 .clients-loading span {

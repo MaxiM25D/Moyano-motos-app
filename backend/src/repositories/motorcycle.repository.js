@@ -57,4 +57,17 @@ export class MotorcycleRepository {
       data: normalizeOptionalFields(data)
     });
   }
+
+  getSaleByMotorcycleId(id) {
+    return prisma.sale.findUnique({
+      where: { motorcycleId: Number(id) },
+      select: { id: true }
+    });
+  }
+
+  deleteMotorcycle(id) {
+    return prisma.motorcycle.delete({
+      where: { id: Number(id) }
+    });
+  }
 }

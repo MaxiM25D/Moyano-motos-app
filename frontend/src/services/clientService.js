@@ -16,3 +16,8 @@ export const updateClient = async (id, client) => {
   const response = await api.patch(`/clients/${id}`, client);
   return response.data.data.client;
 };
+
+export const deleteClient = async (id) => {
+  const response = await api.delete(`/clients/${id}`);
+  return response.data.data.client;
+};

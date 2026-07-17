@@ -114,17 +114,19 @@ model Installment {
 }
 
 model Payment {
-  id            Int           @id @default(autoincrement())
-  installmentId Int           @unique
-  userId        Int
-  installment   Installment   @relation(fields: [installmentId], references: [id])
-  user          User          @relation(fields: [userId], references: [id])
-  amount        Decimal       @db.Decimal(12, 2)
-  method        PaymentMethod @default(CASH)
-  paidAt        DateTime      @default(now())
-  notes         String?
-  receipt       Receipt?
-  createdAt     DateTime      @default(now())
+  id             Int           @id @default(autoincrement())
+  installmentId  Int           @unique
+  userId         Int
+  installment    Installment   @relation(fields: [installmentId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+  amount         Decimal       @db.Decimal(12, 2)
+  interestRate   Decimal       @default(0) @db.Decimal(5, 2)
+  interestAmount Decimal       @default(0) @db.Decimal(12, 2)
+  method         PaymentMethod @default(CASH)
+  paidAt         DateTime      @default(now())
+  notes          String?
+  receipt        Receipt?
+  createdAt      DateTime      @default(now())
 
   @@index([userId])
   @@index([paidAt])

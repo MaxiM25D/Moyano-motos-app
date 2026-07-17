@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createSale,
+  deleteSale,
   getSaleById,
   getSales
 } from "../../controllers/sale.controller.js";
@@ -20,5 +21,6 @@ router.post(
   validate(createSaleSchema),
   createSale
 );
+router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteSale);
 
 export default router;

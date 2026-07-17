@@ -58,4 +58,25 @@ export class SaleRepository {
       include: saleInclude
     });
   }
+
+  deleteSale(id) {
+    const saleId = Number(id);
+
+    return prisma.$transaction(async (tx) => {
+      await tx.receipt.deleteMany({
+        where: {
+          payment: {
+            installment: { saleId }
+          }
+        }
+      });
+      await tx.payment.deleteMany({
+        where: {
+          installment: { saleId }
+        }
+      });
+      await tx.installment.deleteMany({ where: { saleId } });
+      return tx.sale.delete({ where: { id: saleId } });
+    });
+  }
 }

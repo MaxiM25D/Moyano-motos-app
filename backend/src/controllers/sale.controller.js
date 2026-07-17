@@ -39,3 +39,14 @@ export const createSale = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+export const deleteSale = async (req, res) => {
+  try {
+    const sale = await saleService.deleteSale(req.params.id);
+    return sendSuccess(res, "Venta eliminada", {
+      sale: new SaleDTO(sale)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
