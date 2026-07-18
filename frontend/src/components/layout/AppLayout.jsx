@@ -74,6 +74,8 @@ function AppLayout() {
 
         <div className="sidebar-footer">
           <p>Version 1.0</p>
+          <p className="sidebar-credit">Desarrollado por <strong>InfinityDev</strong></p>
+          <p className="sidebar-copyright">&copy; 2026 InfinityDev</p>
         </div>
       </aside>
 
