@@ -41,11 +41,13 @@ El frontend queda disponible en `http://localhost:5173` y la API en `http://loca
 
 ## Produccion en Render
 
-El archivo `render.yaml` define tres recursos:
+El archivo `render.yaml` define la API y la base de datos:
 
-- `moyano-motos-demo`: frontend estatico.
 - `moyano-motos-api`: API de Express.
 - `moyano-motos-db`: PostgreSQL.
+
+El frontend se despliega como el sitio estatico independiente `moyano-motos` en
+`https://moyano-motos.onrender.com`.
 
 La API usa una instancia `starter`, PostgreSQL usa `basic-256mb` con 1 GB y el frontend es un sitio estatico. Render genera la clave JWT, conecta la base de datos y ejecuta las migraciones automaticamente.
 
