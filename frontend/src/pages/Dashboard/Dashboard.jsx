@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiAlertCircle, FiArrowRight, FiCalendar, FiCreditCard, FiFileText, FiRefreshCw } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
 import { getDashboardData } from "../../services/dashboardService.js";
@@ -94,7 +95,7 @@ function Dashboard() {
         <article className="data-panel">
           <header className="panel-header">
             <div><h2>Proximos vencimientos</h2><p>Cuotas pendientes mas cercanas</p></div>
-            <button className="text-button" disabled>Ver todas <FiArrowRight /></button>
+            <Link className="text-button" to="/cuotas">Ver todas <FiArrowRight /></Link>
           </header>
           {loading ? (
             <div className="table-loading"><span /><span /><span /></div>

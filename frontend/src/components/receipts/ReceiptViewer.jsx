@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FiPrinter, FiX } from "react-icons/fi";
 import { getApiError } from "../../services/api.js";
 import { markReceiptPrinted } from "../../services/receiptService.js";
+import moyanoLogo from "../../assets/moyano-logo.png";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 const dateTime = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -57,7 +58,7 @@ function ReceiptViewer({ receipt, canPrint, onClose, onPrinted }) {
         <div className="receipt-paper-wrap">
           <article className="receipt-print-sheet">
             <header className="printed-receipt-header">
-              <div className="printed-brand"><span>MM</span><div><strong>Moyano Motos</strong><small>Comprobante de pago</small></div></div>
+              <div className="printed-brand"><img src={moyanoLogo} alt="Moyano Motos" /><small>Comprobante de pago</small></div>
               <div className="printed-number"><span>RECIBO</span><strong>{data.receiptNumber}</strong><small>{dateTime.format(new Date(data.issuedAt))}</small></div>
             </header>
 

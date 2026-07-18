@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node app.js",
     "start:render": "prisma migrate deploy && node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "db:reset": "node scripts/resetDatabase.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

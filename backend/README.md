@@ -34,7 +34,7 @@ Los controladores manejan HTTP, los servicios contienen las reglas de negocio y 
 PORT=8000
 DATABASE_URL=postgresql://usuario:password@localhost:5432/moyano_motos
 JWT_SECRET=una_clave_segura
-SECRET_SESSION=una_clave_segura
+CORS_ORIGIN=http://localhost:5173
 ```
 
 ## Comandos

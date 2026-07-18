@@ -2,23 +2,24 @@ services:
   - type: web
     name: moyano-motos-api
     runtime: node
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: npm ci && npx prisma generate
     startCommand: npm run start:render
     autoDeployTrigger: commit
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: 22
+      - key: CORS_ORIGIN
+        value: https://moyano-motos-demo.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: moyano-motos-db
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true
-      - key: SECRET_SESSION
         generateValue: true
 
   - type: web
@@ -38,6 +39,7 @@ services:
 
 databases:
   - name: moyano-motos-db
-    plan: free
+    plan: basic-256mb
+    diskSizeGB: 1
     databaseName: moyano_motos
     user: moyano_motos

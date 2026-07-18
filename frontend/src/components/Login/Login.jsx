@@ -4,6 +4,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
 import { loginUser } from "../../services/authService.js";
+import moyanoLogo from "../../assets/moyano-logo.png";
 import "./Login.css";
 
 function Login() {
@@ -39,9 +40,8 @@ function Login() {
   return (
     <main className="login-page">
       <section className="login-brand" aria-label="Moyano Motos">
-        <div className="brand-mark" aria-hidden="true">MM</div>
-        <div>
-          <p className="brand-name">Moyano Motos</p>
+        <div className="login-brand-content">
+          <img src={moyanoLogo} alt="Moyano Motos" />
           <p className="brand-copy">Gestion de ventas y cobranzas</p>
         </div>
       </section>

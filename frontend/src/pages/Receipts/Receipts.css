@@ -77,10 +77,9 @@
 .receipt-paper-wrap { padding: 22px; }
 .receipt-print-sheet { width: 100%; min-height: 720px; padding: 34px 38px; background: white; color: #1d2823; box-shadow: 0 3px 14px rgba(20, 31, 26, 0.08); }
 .printed-receipt-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; padding-bottom: 24px; border-bottom: 2px solid #1f382e; }
-.printed-brand { display: flex; align-items: center; gap: 12px; }
-.printed-brand > span { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #1f382e; font-family: "Manrope", sans-serif; font-size: 12px; font-weight: 700; }
-.printed-brand > div, .printed-number { display: flex; flex-direction: column; }
-.printed-brand strong { font-family: "Manrope", sans-serif; font-size: 17px; }
+.printed-brand, .printed-number { display: flex; flex-direction: column; }
+.printed-brand { align-items: flex-start; }
+.printed-brand img { width: 185px; height: auto; display: block; }
 .printed-brand small, .printed-number small { margin-top: 3px; color: #6f7975; font-size: 9px; }
 .printed-number { align-items: flex-end; text-align: right; }
 .printed-number > span { color: #6f7975; font-size: 9px; font-weight: 700; }
@@ -127,7 +126,7 @@
   .receipt-paper-wrap { padding: 10px; }
   .receipt-print-sheet { min-height: 650px; padding: 24px 20px; }
   .printed-receipt-header { gap: 12px; }
-  .printed-brand strong { font-size: 14px; }
+  .printed-brand img { width: 145px; }
   .receipt-client-block { grid-template-columns: 1fr 1fr; }
   .receipt-detail-grid { gap: 14px; padding: 13px; }
   .printed-receipt-footer { gap: 25px; }

@@ -9,14 +9,20 @@ const app = express();
 const PORT = environment.PORT;
 let server;
 
-app.use(express.json());
+app.disable("x-powered-by");
+app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true }));
 
 export const startServer = async () => {
-  app.use(cors());
+  const allowedOrigins = environment.CORS_ORIGIN
+    ? environment.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+    : true;
+
+  app.use(cors({ origin: allowedOrigins }));
 
   validateEnv();
   await connectAuto();
+  app.get("/api/health", (req, res) => res.json({ status: "ok" }));
   initRouters(app);
 
   server = app.listen(PORT, () =>
