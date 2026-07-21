@@ -105,7 +105,7 @@ function Dashboard() {
                 <div className="installment-row" key={installment.id}>
                   <span className="date-box"><strong>{new Date(installment.dueDate).getDate()}</strong><small>{dateFormatter.format(new Date(installment.dueDate)).split(" ")[1]}</small></span>
                   <div className="installment-info">
-                    <strong>{installment.sale?.client?.name || `Venta #${installment.saleId}`}</strong>
+                    <strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong>
                     <span>Cuota {installment.number} · {installment.sale?.motorcycle ? `${installment.sale.motorcycle.brand} ${installment.sale.motorcycle.model}` : "Moto financiada"}</span>
                   </div>
                   <strong className="installment-amount">{money.format(Number(installment.amount))}</strong>
@@ -129,7 +129,7 @@ function Dashboard() {
                 const days = Math.max(1, Math.floor((Date.now() - new Date(installment.dueDate)) / 86400000));
                 return (
                   <div className="overdue-row" key={installment.id}>
-                    <div><strong>{installment.sale?.client?.name || `Venta #${installment.saleId}`}</strong><span>{days} {days === 1 ? "dia" : "dias"} de atraso</span></div>
+                    <div><strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong><span>{days} {days === 1 ? "dia" : "dias"} de atraso</span></div>
                     <strong>{money.format(Number(installment.amount))}</strong>
                   </div>
                 );

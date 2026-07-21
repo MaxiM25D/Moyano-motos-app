@@ -63,6 +63,7 @@ function Receipts() {
         installment?.sale?.client?.name,
         installment?.sale?.client?.dni,
         installment?.sale?.motorcycle?.domain,
+        installment?.sale?.saleNumber,
         installment?.saleId
       ].some((value) => String(value || "").toLowerCase().includes(term));
     });

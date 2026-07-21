@@ -3,7 +3,8 @@ import {
   createSale,
   deleteSale,
   getSaleById,
-  getSales
+  getSales,
+  markSaleReceiptPrinted
 } from "../../controllers/sale.controller.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
@@ -13,6 +14,12 @@ import { createSaleSchema } from "../../validators/sale.validator.js";
 const router = Router();
 
 router.get("/", authMiddleware, getSales);
+router.patch(
+  "/:id/receipt/printed",
+  authMiddleware,
+  roleMiddleware("ADMIN", "SELLER"),
+  markSaleReceiptPrinted
+);
 router.get("/:id", authMiddleware, getSaleById);
 router.post(
   "/",

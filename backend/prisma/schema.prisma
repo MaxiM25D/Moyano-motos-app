@@ -32,6 +32,11 @@ enum PaymentMethod {
   OTHER
 }
 
+enum BalanceAllocation {
+  NEXT_INSTALLMENT
+  REMAINING_INSTALLMENTS
+}
+
 model User {
   id        Int       @id @default(autoincrement())
   name      String
@@ -72,27 +77,40 @@ model Motorcycle {
 }
 
 model Sale {
-  id                Int           @id @default(autoincrement())
-  clientId          Int
-  motorcycleId      Int           @unique
-  sellerId          Int
-  client            Client        @relation(fields: [clientId], references: [id])
-  motorcycle        Motorcycle    @relation(fields: [motorcycleId], references: [id])
-  seller            User          @relation(fields: [sellerId], references: [id])
-  salePrice         Decimal       @db.Decimal(12, 2)
-  downPayment       Decimal       @db.Decimal(12, 2)
-  financedAmount    Decimal       @db.Decimal(12, 2)
-  installmentPlan   Int
-  installmentAmount Decimal       @db.Decimal(12, 2)
-  status            SaleStatus    @default(ACTIVE)
-  saleDate          DateTime      @default(now())
-  installments      Installment[]
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id                      Int           @id @default(autoincrement())
+  saleNumber              Int           @unique
+  clientId                Int
+  motorcycleId            Int           @unique
+  sellerId                Int
+  client                  Client        @relation(fields: [clientId], references: [id])
+  motorcycle              Motorcycle    @relation(fields: [motorcycleId], references: [id])
+  seller                  User          @relation(fields: [sellerId], references: [id])
+  salePrice               Decimal       @db.Decimal(12, 2)
+  downPayment             Decimal       @db.Decimal(12, 2)
+  financedAmount          Decimal       @db.Decimal(12, 2)
+  financingInterestRate   Decimal       @default(0) @db.Decimal(5, 2)
+  financingInterestAmount Decimal       @default(0) @db.Decimal(12, 2)
+  installmentPlan         Int
+  installmentAmount       Decimal       @db.Decimal(12, 2)
+  status                  SaleStatus    @default(ACTIVE)
+  saleDate                DateTime      @default(now())
+  installments            Installment[]
+  saleReceipt             SaleReceipt?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   @@index([clientId])
   @@index([sellerId])
   @@index([saleDate])
+}
+
+model SaleReceipt {
+  id            Int       @id @default(autoincrement())
+  saleId        Int       @unique
+  sale          Sale      @relation(fields: [saleId], references: [id])
+  receiptNumber String    @unique
+  printedAt     DateTime?
+  createdAt     DateTime  @default(now())
 }
 
 model Installment {
@@ -114,19 +132,22 @@ model Installment {
 }
 
 model Payment {
-  id             Int           @id @default(autoincrement())
-  installmentId  Int           @unique
-  userId         Int
-  installment    Installment   @relation(fields: [installmentId], references: [id])
-  user           User          @relation(fields: [userId], references: [id])
-  amount         Decimal       @db.Decimal(12, 2)
-  interestRate   Decimal       @default(0) @db.Decimal(5, 2)
-  interestAmount Decimal       @default(0) @db.Decimal(12, 2)
-  method         PaymentMethod @default(CASH)
-  paidAt         DateTime      @default(now())
-  notes          String?
-  receipt        Receipt?
-  createdAt      DateTime      @default(now())
+  id                Int                @id @default(autoincrement())
+  installmentId     Int                @unique
+  userId            Int
+  installment       Installment        @relation(fields: [installmentId], references: [id])
+  user              User               @relation(fields: [userId], references: [id])
+  amount            Decimal            @db.Decimal(12, 2)
+  expectedAmount    Decimal            @default(0) @db.Decimal(12, 2)
+  carriedBalance    Decimal            @default(0) @db.Decimal(12, 2)
+  balanceAllocation BalanceAllocation?
+  interestRate      Decimal            @default(0) @db.Decimal(5, 2)
+  interestAmount    Decimal            @default(0) @db.Decimal(12, 2)
+  method            PaymentMethod      @default(CASH)
+  paidAt            DateTime           @default(now())
+  notes             String?
+  receipt           Receipt?
+  createdAt         DateTime           @default(now())
 
   @@index([userId])
   @@index([paidAt])

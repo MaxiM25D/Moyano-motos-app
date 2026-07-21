@@ -64,7 +64,10 @@ export class SaleService {
     }
 
     const installmentPlan = Number(data.installmentPlan);
-    const installmentCents = Math.round(financedCents / installmentPlan);
+    const financingInterestRate = Number(data.financingInterestRate || 0);
+    const financingInterestCents = Math.round(financedCents * financingInterestRate / 100);
+    const totalFinancedCents = financedCents + financingInterestCents;
+    const installmentCents = Math.round(totalFinancedCents / installmentPlan);
     const saleDate = data.saleDate ? new Date(data.saleDate) : new Date();
     const firstDueDate = data.firstDueDate ? new Date(data.firstDueDate) : addMonths(saleDate, 1);
 
@@ -72,7 +75,7 @@ export class SaleService {
       const number = index + 1;
       const isLastInstallment = number === installmentPlan;
       const amountCents = isLastInstallment
-        ? financedCents - installmentCents * (installmentPlan - 1)
+        ? totalFinancedCents - installmentCents * (installmentPlan - 1)
         : installmentCents;
 
       return {
@@ -90,6 +93,8 @@ export class SaleService {
         salePrice: toMoney(salePriceCents),
         downPayment: toMoney(downPaymentCents),
         financedAmount: toMoney(financedCents),
+        financingInterestRate: financingInterestRate.toFixed(2),
+        financingInterestAmount: toMoney(financingInterestCents),
         installmentPlan,
         installmentAmount: toMoney(installmentCents),
         saleDate
@@ -105,5 +110,14 @@ export class SaleService {
     if (!sale) throw new HttpError("Venta no encontrada", 404);
 
     return saleRepository.deleteSale(id);
+  }
+
+  async markSaleReceiptPrinted(id) {
+    const saleId = validateId(id, "ID de venta");
+    const sale = await saleRepository.getSaleById(saleId);
+    if (!sale) throw new HttpError("Venta no encontrada", 404);
+    if (!sale.saleReceipt) throw new HttpError("Recibo de venta no encontrado", 404);
+
+    return saleRepository.markSaleReceiptPrinted(saleId);
   }
 }

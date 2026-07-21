@@ -14,6 +14,11 @@ const methodLabels = {
   OTHER: "Otro"
 };
 
+const allocationLabels = {
+  NEXT_INSTALLMENT: "proxima cuota",
+  REMAINING_INSTALLMENTS: "cuotas restantes"
+};
+
 function ReceiptViewer({ receipt, canPrint, onClose, onPrinted }) {
   const [currentReceipt, setCurrentReceipt] = useState(receipt);
   const [printing, setPrinting] = useState(false);
@@ -73,13 +78,14 @@ function ReceiptViewer({ receipt, canPrint, onClose, onPrinted }) {
               <span>Importe recibido</span>
               <strong>{money.format(Number(data.payment?.amount || 0))}</strong>
               {Number(data.payment?.interestRate || 0) > 0 && <small>Cuota base: {money.format(Number(data.installment?.amount || 0))} | Interes {data.payment.interestRate}%: {money.format(Number(data.payment.interestAmount || 0))}</small>}
+              {Number(data.payment?.carriedBalance || 0) > 0 && <small>Total de la cuota: {money.format(Number(data.payment.expectedAmount || 0))} | Saldo trasladado a {allocationLabels[data.payment.balanceAllocation]}: {money.format(Number(data.payment.carriedBalance))}</small>}
               <small>Medio de pago: {methodLabels[data.payment?.method] || data.payment?.method}</small>
             </section>
 
             <section className="receipt-concept">
               <h3>Concepto</h3>
               <div className="receipt-detail-grid">
-                <div><span>Venta</span><strong>#{data.sale?.id || "-"}</strong></div>
+                <div><span>Venta</span><strong>#{data.sale?.saleNumber || data.sale?.id || "-"}</strong></div>
                 <div><span>Cuota</span><strong>N.º {data.installment?.number || "-"}</strong></div>
                 <div><span>Fecha de pago</span><strong>{data.payment?.paidAt ? dateTime.format(new Date(data.payment.paidAt)) : "-"}</strong></div>
                 <div><span>Vencimiento</span><strong>{data.installment?.dueDate ? dateTime.format(new Date(data.installment.dueDate)).split(",")[0] : "-"}</strong></div>

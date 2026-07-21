@@ -14,3 +14,8 @@ export const deleteSale = async (id) => {
   const response = await api.delete(`/sales/${id}`);
   return response.data.data.sale;
 };
+
+export const markSaleReceiptPrinted = async (id) => {
+  const response = await api.patch(`/sales/${id}/receipt/printed`);
+  return response.data.data.receipt;
+};

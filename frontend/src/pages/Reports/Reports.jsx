@@ -154,10 +154,10 @@ function Reports() {
               {collections.payments.map((payment) => <tr key={payment.id}>
                 <td data-label="Fecha">{date.format(new Date(payment.paidAt))}</td>
                 <td data-label="Cliente"><div><strong>{payment.installment?.sale?.client?.name || "-"}</strong><small>DNI {payment.installment?.sale?.client?.dni || "-"}</small></div></td>
-                <td data-label="Cuota">N.º {payment.installment?.number} · Venta #{payment.installment?.saleId}</td>
+                <td data-label="Cuota">N.º {payment.installment?.number} · Venta #{payment.installment?.sale?.saleNumber || payment.installment?.saleId}</td>
                 <td data-label="Medio">{methodLabels[payment.method] || payment.method}</td>
                 <td data-label="Cobrador">{payment.user?.name || "-"}</td>
-                <td data-label="Importe" className="report-money">{money.format(Number(payment.amount))}{Number(payment.interestRate || 0) > 0 && <small>Interes {payment.interestRate}%</small>}</td>
+                <td data-label="Importe" className="report-money">{money.format(Number(payment.amount))}{Number(payment.interestRate || 0) > 0 && <small>Interes {payment.interestRate}%</small>}{Number(payment.carriedBalance || 0) > 0 && <small>Saldo trasladado {money.format(Number(payment.carriedBalance))}</small>}</td>
               </tr>)}
             </tbody></table>
           ) : <div className="report-empty"><FiDollarSign /><strong>Sin cobranzas en el periodo</strong><span>Selecciona otro rango de fechas para consultar.</span></div>}

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiSearch, FiX } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiTrash2, FiX } from "react-icons/fi";
+import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import InstallmentFormModal from "../../components/installments/InstallmentFormModal.jsx";
 import PaymentModal from "../../components/installments/PaymentModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getInstallments } from "../../services/installmentService.js";
+import { deleteInstallment, getInstallments } from "../../services/installmentService.js";
 import "./Installments.css";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
@@ -25,10 +27,14 @@ function Installments() {
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [installmentToEdit, setInstallmentToEdit] = useState(null);
+  const [installmentToDelete, setInstallmentToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const canCollect = ["ADMIN", "COLLECTOR"].includes(user.role);
+  const canManagePlan = user.role === "ADMIN";
 
   const loadInstallments = useCallback(async () => {
     setLoading(true);
@@ -76,6 +82,7 @@ function Installments() {
         item.sale?.motorcycle?.brand,
         item.sale?.motorcycle?.model,
         item.sale?.motorcycle?.domain,
+        item.sale?.saleNumber,
         item.saleId
       ].some((value) => String(value || "").toLowerCase().includes(term));
       return matchesFilter && matchesSearch;
@@ -86,6 +93,28 @@ function Installments() {
     setSelectedInstallment(null);
     setNotice(`El pago de la cuota ${paidInstallment.number} fue registrado correctamente.`);
     await loadInstallments();
+  };
+
+  const handleUpdated = async (updatedInstallment) => {
+    setInstallmentToEdit(null);
+    setNotice(`La cuota ${updatedInstallment.number} fue actualizada.`);
+    await loadInstallments();
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      const deletedInstallment = await deleteInstallment(installmentToDelete.id);
+      setInstallmentToDelete(null);
+      setNotice(`La cuota ${deletedInstallment.number} fue eliminada y el plan fue actualizado.`);
+      await loadInstallments();
+    } catch (requestError) {
+      setInstallmentToDelete(null);
+      setError(getApiError(requestError, "No se pudo eliminar la cuota"));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -115,7 +144,7 @@ function Installments() {
           <div className="installments-loading"><span /><span /><span /><span /></div>
         ) : visibleInstallments.length ? (
           <table className="installments-table">
-            <thead><tr><th>Cliente</th><th>Moto</th><th>Cuota</th><th>Vencimiento</th><th>Importe</th><th>Estado</th><th>Pago</th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Moto</th><th>Cuota</th><th>Vencimiento</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
               {visibleInstallments.map((item) => {
                 const overdue = isOverdue(item);
@@ -123,16 +152,23 @@ function Installments() {
                 return (
                   <tr key={item.id}>
                     <td data-label="Cliente"><div className="installment-client"><strong>{item.sale?.client?.name || "-"}</strong><small>DNI {item.sale?.client?.dni || "-"}</small></div></td>
-                    <td data-label="Moto"><div className="installment-moto"><strong>{item.sale?.motorcycle?.brand} {item.sale?.motorcycle?.model}</strong><small>{item.sale?.motorcycle?.domain || `Venta #${item.saleId}`}</small></div></td>
+                    <td data-label="Moto"><div className="installment-moto"><strong>{item.sale?.motorcycle?.brand} {item.sale?.motorcycle?.model}</strong><small>{item.sale?.motorcycle?.domain || `Venta #${item.sale?.saleNumber || item.saleId}`}</small></div></td>
                     <td data-label="Cuota"><strong>{item.number}</strong><span> / {item.sale?.installmentPlan || "-"}</span></td>
                     <td data-label="Vencimiento" className={overdue ? "overdue-date" : ""}>{date.format(new Date(item.dueDate))}</td>
                     <td data-label="Importe" className="installment-money">
                       {money.format(Number(item.status === "PAID" ? item.payment?.amount || item.amount : item.amount))}
                       {Number(item.payment?.interestRate || 0) > 0 && <small>Incluye {item.payment.interestRate}% de interes</small>}
+                      {Number(item.payment?.carriedBalance || 0) > 0 && <small>Saldo trasladado: {money.format(Number(item.payment.carriedBalance))}</small>}
                     </td>
                     <td data-label="Estado"><span className={`installment-status ${visualStatus.toLowerCase()}`}>{visualStatus === "OVERDUE" ? "Vencida" : visualStatus === "PAID" ? "Pagada" : visualStatus === "CANCELLED" ? "Cancelada" : "Pendiente"}</span></td>
                     <td className="installment-action-cell">
-                      {item.status === "PENDING" && canCollect ? <button className="collect-button" onClick={() => setSelectedInstallment(item)}><FiDollarSign />Cobrar</button> : item.status === "PAID" ? <span className="paid-mark"><FiCheckCircle />{item.payment?.method === "TRANSFER" ? "Transferencia" : item.payment?.method === "CARD" ? "Tarjeta" : item.payment?.method === "OTHER" ? "Otro" : "Efectivo"}</span> : "-"}
+                      <div className="installment-row-actions">
+                        {item.status === "PENDING" && canCollect && <button className="collect-button" onClick={() => setSelectedInstallment(item)}><FiDollarSign />Cobrar</button>}
+                        {item.status === "PENDING" && canManagePlan && <button className="installment-edit-button" onClick={() => setInstallmentToEdit(item)} aria-label={`Editar cuota ${item.number}`} title="Editar cuota"><FiEdit2 /></button>}
+                        {item.status === "PENDING" && canManagePlan && <button className="installment-delete-button" onClick={() => setInstallmentToDelete(item)} aria-label={`Eliminar cuota ${item.number}`} title="Eliminar cuota"><FiTrash2 /></button>}
+                        {item.status === "PAID" && <span className="paid-mark"><FiCheckCircle />{item.payment?.method === "TRANSFER" ? "Transferencia" : item.payment?.method === "CARD" ? "Tarjeta" : item.payment?.method === "OTHER" ? "Otro" : "Efectivo"}</span>}
+                        {item.status === "CANCELLED" && "-"}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -145,6 +181,8 @@ function Installments() {
       </div>
 
       {selectedInstallment && <PaymentModal installment={selectedInstallment} onClose={() => setSelectedInstallment(null)} onPaid={handlePaid} />}
+      {installmentToEdit && <InstallmentFormModal installment={installmentToEdit} onClose={() => setInstallmentToEdit(null)} onSaved={handleUpdated} />}
+      {installmentToDelete && <ConfirmDialog title="Eliminar cuota" message={`Se eliminara la cuota ${installmentToDelete.number} de la venta #${installmentToDelete.sale?.saleNumber || installmentToDelete.saleId}. Las cuotas posteriores se renumeraran y esta accion no se puede deshacer.`} loading={deleting} onCancel={() => setInstallmentToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

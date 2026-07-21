@@ -62,7 +62,83 @@ export class InstallmentRepository {
     });
   }
 
-  payInstallment(installment, paymentData) {
+  getFuturePendingInstallments(saleId, number) {
+    return prisma.installment.findMany({
+      where: {
+        saleId: Number(saleId),
+        number: { gt: Number(number) },
+        status: "PENDING"
+      },
+      orderBy: { number: "asc" }
+    });
+  }
+
+  updateInstallment(id, data) {
+    return prisma.installment.update({
+      where: { id: Number(id) },
+      data,
+      include: installmentInclude
+    });
+  }
+
+  countInstallmentsBySaleId(saleId) {
+    return prisma.installment.count({
+      where: { saleId: Number(saleId) }
+    });
+  }
+
+  countPaidInstallmentsAfter(saleId, number) {
+    return prisma.installment.count({
+      where: {
+        saleId: Number(saleId),
+        number: { gt: Number(number) },
+        status: "PAID"
+      }
+    });
+  }
+
+  deleteInstallment(installment) {
+    return prisma.$transaction(async (tx) => {
+      await tx.installment.delete({ where: { id: installment.id } });
+
+      const laterInstallments = await tx.installment.findMany({
+        where: {
+          saleId: installment.saleId,
+          number: { gt: installment.number }
+        },
+        orderBy: { number: "asc" }
+      });
+
+      for (const laterInstallment of laterInstallments) {
+        await tx.installment.update({
+          where: { id: laterInstallment.id },
+          data: { number: laterInstallment.number - 1 }
+        });
+      }
+
+      const installmentPlan = await tx.installment.count({
+        where: { saleId: installment.saleId }
+      });
+      const unpaidCount = await tx.installment.count({
+        where: {
+          saleId: installment.saleId,
+          status: { not: "PAID" }
+        }
+      });
+
+      await tx.sale.update({
+        where: { id: installment.saleId },
+        data: {
+          installmentPlan,
+          ...(unpaidCount === 0 ? { status: "PAID" } : {})
+        }
+      });
+
+      return installment;
+    });
+  }
+
+  payInstallment(installment, paymentData, installmentAdjustments) {
     return prisma.$transaction(async (tx) => {
       const paidInstallment = await tx.installment.update({
         where: { id: installment.id },
@@ -78,6 +154,9 @@ export class InstallmentRepository {
           installmentId: installment.id,
           userId: paymentData.userId,
           amount: paymentData.amount,
+          expectedAmount: paymentData.expectedAmount,
+          carriedBalance: paymentData.carriedBalance,
+          balanceAllocation: paymentData.balanceAllocation,
           interestRate: paymentData.interestRate,
           interestAmount: paymentData.interestAmount,
           method: paymentData.method,
@@ -85,6 +164,13 @@ export class InstallmentRepository {
           notes: paymentData.notes || null
         }
       });
+
+      for (const adjustment of installmentAdjustments) {
+        await tx.installment.update({
+          where: { id: adjustment.id },
+          data: { amount: { increment: adjustment.amount } }
+        });
+      }
 
       const pendingCount = await tx.installment.count({
         where: {

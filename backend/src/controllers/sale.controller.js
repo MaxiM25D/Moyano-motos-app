@@ -50,3 +50,12 @@ export const deleteSale = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+export const markSaleReceiptPrinted = async (req, res) => {
+  try {
+    const receipt = await saleService.markSaleReceiptPrinted(req.params.id);
+    return sendSuccess(res, "Recibo de venta preparado", { receipt });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};

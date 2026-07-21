@@ -9,3 +9,13 @@ export const payInstallment = async (id, payment) => {
   const response = await api.patch(`/installments/${id}/pay`, payment);
   return response.data.data.installment;
 };
+
+export const updateInstallment = async (id, installment) => {
+  const response = await api.patch(`/installments/${id}`, installment);
+  return response.data.data.installment;
+};
+
+export const deleteInstallment = async (id) => {
+  const response = await api.delete(`/installments/${id}`);
+  return response.data.data.installment;
+};

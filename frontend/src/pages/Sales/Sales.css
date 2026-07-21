@@ -30,6 +30,7 @@
 .sale-client strong, .sale-motorcycle strong { font-size: 12px; }
 .sale-client small, .sale-motorcycle small, .paid-progress { display: block; margin-top: 4px; color: #929b97; font-size: 10px; }
 .sale-money { font-weight: 700; }
+.sale-money small { display: block; margin-top: 4px; color: #9a651b; font-size: 9px; font-weight: 500; }
 
 .sale-status { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 .sale-status.active, .sale-status.pending { background: #fff3d9; color: #8a5a16; }
@@ -58,6 +59,10 @@
 .sale-modal-header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid #e5eae7; }
 .sale-modal-header h2 { margin: 0 0 4px; font-family: "Manrope", sans-serif; font-size: 18px; }
 .sale-modal-header p { margin: 0; color: #818b86; font-size: 12px; }
+.sale-detail-subtitle { display: flex; align-items: center; gap: 10px; }
+.motorcycle-details-toggle { min-height: 28px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border: 1px solid #d6ded9; border-radius: 4px; background: white; color: #52615a; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.motorcycle-details-toggle:hover { border-color: #8a5a16; color: #744b12; }
+.motorcycle-details-toggle svg { width: 13px; height: 13px; }
 .sale-modal-close { flex: 0 0 34px; font-size: 18px; }
 .sale-modal-body { padding: 22px 20px 25px; }
 .sale-form-error { margin-bottom: 18px; padding: 10px 12px; border-left: 3px solid #c93f45; background: #fff0f0; color: #922b31; font-size: 12px; }
@@ -69,22 +74,33 @@
 .sale-form-grid input, .sale-form-grid select { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #d7dedb; border-radius: 5px; outline: 0; background: white; color: #1d2823; font: inherit; font-size: 13px; }
 .sale-form-grid input:focus, .sale-form-grid select:focus { border-color: #8a5a16; box-shadow: 0 0 0 3px rgba(138, 90, 22, 0.08); }
 .sale-form-grid label small { display: block; margin-top: 5px; color: #a13b40; font-size: 10px; }
-.sale-plan-field { grid-column: 1 / -1; }
-.plan-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.plan-options button { height: 38px; border: 1px solid #d7dedb; border-radius: 5px; background: white; color: #56615c; font-weight: 700; }
-.plan-options button.is-selected { border-color: #8a5a16; background: #fff5e5; color: #744b12; }
-.financing-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 22px; border: 1px solid #dce3df; border-radius: 6px; background: #dce3df; overflow: hidden; }
+.financing-preview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 22px; border: 1px solid #dce3df; border-radius: 6px; background: #dce3df; overflow: hidden; }
 .financing-preview > div { min-width: 0; display: flex; flex-direction: column; padding: 15px 17px; background: #f7f9f8; }
 .financing-preview span { color: #75807b; font-size: 11px; }
 .financing-preview strong { margin-top: 5px; overflow: hidden; font-family: "Manrope", sans-serif; font-size: 17px; text-overflow: ellipsis; }
+.financing-preview .financing-total { background: #fff8eb; }
+.financing-preview .financing-total strong { color: #744b12; }
 .sale-modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #e5eae7; background: #fafbfa; }
 
 .sale-detail-modal { width: min(100%, 820px); }
 .sale-detail-body { padding: 20px; }
-.sale-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sale-motorcycle-details { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid #e1e6e3; }
+.motorcycle-details-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 13px; }
+.motorcycle-details-heading h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 13px; }
+.motorcycle-details-heading span { color: #7d8782; font-size: 11px; }
+.motorcycle-details-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; margin: 0; }
+.motorcycle-details-grid > div { min-width: 0; padding-left: 10px; border-left: 2px solid #d8e1dd; }
+.motorcycle-details-grid dt { color: #7d8782; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.motorcycle-details-grid dd { margin: 4px 0 0; overflow-wrap: anywhere; color: #26332d; font-size: 12px; font-weight: 600; }
+.sale-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .sale-summary-grid > div { min-width: 0; padding: 14px; border: 1px solid #e1e6e3; border-radius: 5px; background: #f9faf9; }
 .sale-summary-grid span { display: block; color: #7d8782; font-size: 10px; }
 .sale-summary-grid strong { display: block; margin-top: 5px; overflow: hidden; font-size: 14px; text-overflow: ellipsis; }
+.sale-receipt-access { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding: 7px 10px; border: 1px solid #dce4e0; border-radius: 5px; background: #f8faf9; }
+.sale-receipt-access button { min-height: 30px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid #b9cfc5; border-radius: 4px; background: white; color: #176b50; font-size: 11px; font-weight: 700; }
+.sale-receipt-access button:hover { border-color: #176b50; }
+.sale-receipt-access button:disabled { cursor: not-allowed; opacity: 0.55; }
+.sale-receipt-access span { color: #7b8681; font-size: 10px; }
 .installments-detail-header { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-bottom: 10px; border-bottom: 1px solid #e4e9e6; }
 .installments-detail-header h3 { margin: 0; font-family: "Manrope", sans-serif; font-size: 14px; }
 .installments-detail-header > span { color: #7d8782; font-size: 11px; }
@@ -110,6 +126,7 @@
   .sales-table .sale-action-cell { grid-column: 2; grid-row: 1; padding: 0; }
   .sales-loading { min-width: 0; }
   .sale-summary-grid { grid-template-columns: 1fr 1fr; }
+  .motorcycle-details-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -120,8 +137,8 @@
   .sales-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
   .sales-search { width: 100%; }
   .sale-form-grid { grid-template-columns: 1fr; }
-  .sale-plan-field { grid-column: auto; }
-  .plan-options { grid-template-columns: repeat(5, minmax(42px, 1fr)); overflow-x: auto; }
+  .financing-preview { grid-template-columns: 1fr 1fr; }
+  .sale-detail-subtitle { align-items: flex-start; flex-direction: column; gap: 6px; }
   .installment-detail-row { grid-template-columns: 30px minmax(100px, 1fr) auto; }
   .installment-detail-row .sale-status { display: none; }
 }
@@ -133,4 +150,5 @@
   .sale-modal-actions button { flex: 1; }
   .financing-preview { grid-template-columns: 1fr; }
   .sale-summary-grid { grid-template-columns: 1fr 1fr; }
+  .motorcycle-details-grid { grid-template-columns: 1fr; }
 }

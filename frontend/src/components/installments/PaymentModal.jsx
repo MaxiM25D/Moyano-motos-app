@@ -21,18 +21,27 @@ const paymentMethods = [
 ];
 
 function PaymentModal({ installment, onClose, onPaid }) {
+  const baseAmount = Number(installment.amount);
   const [form, setForm] = useState({
     method: "CASH",
     paidAt: toInputDate(new Date()),
     interestRate: "0",
+    amount: baseAmount.toFixed(2),
+    balanceAllocation: "NEXT_INSTALLMENT",
     notes: ""
   });
+  const [amountManuallyEdited, setAmountManuallyEdited] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const baseAmount = Number(installment.amount);
   const interestRate = Number(form.interestRate || 0);
   const interestAmount = Math.round(baseAmount * interestRate) / 100;
-  const totalAmount = baseAmount + interestAmount;
+  const totalAmount = Math.round((baseAmount + interestAmount) * 100) / 100;
+  const receivedAmount = Number(form.amount) || 0;
+  const carriedBalance = Math.max(
+    Math.round((totalAmount - receivedAmount) * 100) / 100,
+    0
+  );
+  const isPartialPayment = receivedAmount > 0 && carriedBalance > 0;
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -44,19 +53,36 @@ function PaymentModal({ installment, onClose, onPaid }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    if (name === "amount") setAmountManuallyEdited(true);
+
+    setForm((current) => {
+      const next = { ...current, [name]: value };
+      if (name === "interestRate" && !amountManuallyEdited) {
+        const nextInterest = Math.round(baseAmount * Number(value || 0)) / 100;
+        next.amount = (baseAmount + nextInterest).toFixed(2);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSaving(true);
     setError("");
+
+    if (receivedAmount <= 0 || receivedAmount > totalAmount) {
+      setError("El importe recibido debe ser mayor a cero y no superar el total de la cuota");
+      return;
+    }
+
+    setSaving(true);
 
     try {
       const paidInstallment = await payInstallment(installment.id, {
         method: form.method,
         paidAt: form.paidAt,
         interestRate,
+        amount: receivedAmount,
+        balanceAllocation: isPartialPayment ? form.balanceAllocation : undefined,
         notes: form.notes.trim()
       });
       onPaid(paidInstallment);
@@ -75,7 +101,7 @@ function PaymentModal({ installment, onClose, onPaid }) {
         <header className="payment-modal-header">
           <div>
             <h2 id="payment-title">Registrar pago</h2>
-            <p>{installment.sale?.client?.name} · Cuota {installment.number}</p>
+            <p>{installment.sale?.client?.name} - Cuota {installment.number}</p>
           </div>
           <button className="payment-close" type="button" onClick={onClose} disabled={saving} aria-label="Cerrar" title="Cerrar"><FiX /></button>
         </header>
@@ -91,6 +117,12 @@ function PaymentModal({ installment, onClose, onPaid }) {
                 <span>Cuota base <b>{money.format(baseAmount)}</b></span>
                 <span>Interes ({interestRate}%) <b>{money.format(interestAmount)}</b></span>
               </div>
+              {isPartialPayment && (
+                <div className="payment-balance-summary">
+                  <span>Importe recibido <b>{money.format(receivedAmount)}</b></span>
+                  <span>Saldo a trasladar <b>{money.format(carriedBalance)}</b></span>
+                </div>
+              )}
               <small>Vence el {new Intl.DateTimeFormat("es-AR").format(new Date(installment.dueDate))}</small>
             </div>
 
@@ -109,6 +141,19 @@ function PaymentModal({ installment, onClose, onPaid }) {
                 <span>Interes aplicado (%)</span>
                 <input type="number" name="interestRate" value={form.interestRate} onChange={handleChange} min="0" max="100" step="0.01" inputMode="decimal" />
               </label>
+              <label>
+                <span>Importe recibido *</span>
+                <input type="number" name="amount" value={form.amount} onChange={handleChange} min="0.01" max={totalAmount} step="0.01" inputMode="decimal" required />
+              </label>
+              {isPartialPayment && (
+                <label className="payment-allocation-field">
+                  <span>Trasladar saldo pendiente a *</span>
+                  <select name="balanceAllocation" value={form.balanceAllocation} onChange={handleChange} required>
+                    <option value="NEXT_INSTALLMENT">La proxima cuota</option>
+                    <option value="REMAINING_INSTALLMENTS">Todas las cuotas restantes</option>
+                  </select>
+                </label>
+              )}
               <label className="payment-notes-field">
                 <span>Observaciones</span>
                 <textarea name="notes" value={form.notes} onChange={handleChange} maxLength="500" rows="4" placeholder="Referencia de transferencia u otra aclaracion" />

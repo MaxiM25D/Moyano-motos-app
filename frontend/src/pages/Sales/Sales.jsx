@@ -68,6 +68,7 @@ function Sales() {
 
     return sales.filter((sale) => [
       sale.id,
+      sale.saleNumber,
       sale.client?.name,
       sale.client?.dni,
       sale.motorcycle?.brand,
@@ -83,7 +84,7 @@ function Sales() {
 
   const handleCreated = async (sale) => {
     setCreateOpen(false);
-    setNotice(`La venta #${sale.id} fue registrada con ${sale.installmentPlan} cuotas.`);
+    setNotice(`La venta #${sale.saleNumber} fue registrada con ${sale.installmentPlan} cuotas.`);
     await loadSales();
     setSelectedSale(sale);
   };
@@ -95,7 +96,7 @@ function Sales() {
       const deleted = await deleteSale(saleToDelete.id);
       setSaleToDelete(null);
       setSelectedSale((current) => current?.id === deleted.id ? null : current);
-      setNotice(`La venta #${deleted.id} fue eliminada.`);
+      setNotice(`La venta #${deleted.saleNumber} fue eliminada.`);
       await loadSales();
     } catch (requestError) {
       setSaleToDelete(null);
@@ -135,14 +136,17 @@ function Sales() {
                 const paid = sale.installments.filter((item) => item.status === "PAID").length;
                 return (
                   <tr key={sale.id}>
-                    <td data-label="Venta"><strong>#{sale.id}</strong></td>
+                    <td data-label="Venta"><strong>#{sale.saleNumber}</strong></td>
                     <td data-label="Cliente"><div className="sale-client"><strong>{sale.client?.name || "-"}</strong><small>DNI {sale.client?.dni || "-"}</small></div></td>
                     <td data-label="Moto"><div className="sale-motorcycle"><strong>{sale.motorcycle?.brand} {sale.motorcycle?.model}</strong><small>{sale.motorcycle?.domain || "Sin dominio"}</small></div></td>
                     <td data-label="Fecha">{date.format(new Date(sale.saleDate))}</td>
                     <td data-label="Plan"><strong>{sale.installmentPlan}</strong> cuotas<small className="paid-progress">{paid} pagadas</small></td>
-                    <td data-label="Financiado" className="sale-money">{money.format(Number(sale.financedAmount))}</td>
+                    <td data-label="Financiado" className="sale-money">
+                      {money.format(Number(sale.totalFinancedAmount || sale.financedAmount))}
+                      {Number(sale.financingInterestRate || 0) > 0 && <small>Incluye {sale.financingInterestRate}% de interes</small>}
+                    </td>
                     <td data-label="Estado"><span className={`sale-status ${sale.status.toLowerCase()}`}>{statusLabels[sale.status]}</span></td>
-                    <td className="sale-action-cell"><div className="sale-row-actions"><button onClick={() => setSelectedSale(sale)} aria-label={`Ver venta ${sale.id}`} title="Ver detalle"><FiEye /></button>{canDelete && <button className="sale-delete-button" onClick={() => setSaleToDelete(sale)} aria-label={`Eliminar venta ${sale.id}`} title="Eliminar venta"><FiTrash2 /></button>}</div></td>
+                    <td className="sale-action-cell"><div className="sale-row-actions"><button onClick={() => setSelectedSale(sale)} aria-label={`Ver venta ${sale.saleNumber}`} title="Ver detalle"><FiEye /></button>{canDelete && <button className="sale-delete-button" onClick={() => setSaleToDelete(sale)} aria-label={`Eliminar venta ${sale.saleNumber}`} title="Eliminar venta"><FiTrash2 /></button>}</div></td>
                   </tr>
                 );
               })}
@@ -155,7 +159,7 @@ function Sales() {
 
       {createOpen && <SaleFormModal soldMotorcycleIds={soldMotorcycleIds} onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
       {selectedSale && <SaleDetailModal sale={selectedSale} onClose={() => setSelectedSale(null)} />}
-      {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.id}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
+      {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.saleNumber}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

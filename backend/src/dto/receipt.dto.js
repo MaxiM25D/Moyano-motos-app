@@ -37,6 +37,7 @@ export class ReceiptDTO {
       sale: sale
         ? {
             id: sale.id,
+            saleNumber: sale.saleNumber,
             saleDate: sale.saleDate,
             salePrice: sale.salePrice,
             downPayment: sale.downPayment,
@@ -54,6 +55,9 @@ export class ReceiptDTO {
       payment: payment
         ? {
             amount: payment.amount,
+            expectedAmount: payment.expectedAmount,
+            carriedBalance: payment.carriedBalance,
+            balanceAllocation: payment.balanceAllocation,
             interestRate: payment.interestRate,
             interestAmount: payment.interestAmount,
             method: payment.method,

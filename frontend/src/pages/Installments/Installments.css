@@ -24,15 +24,15 @@
 .installments-search button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #717c77; }
 
 .installments-table-wrap { min-height: 430px; border: 1px solid #e0e6e3; border-radius: 0 0 7px 7px; background: white; overflow-x: auto; }
-.installments-table { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; }
+.installments-table { width: 100%; min-width: 1080px; border-collapse: collapse; table-layout: fixed; }
 .installments-table th { height: 42px; padding: 0 13px; border-bottom: 1px solid #e5eae7; background: #f8faf9; color: #75807b; font-size: 10px; font-weight: 700; text-align: left; text-transform: uppercase; }
-.installments-table th:first-child { width: 20%; }
-.installments-table th:nth-child(2) { width: 19%; }
-.installments-table th:nth-child(3) { width: 9%; }
-.installments-table th:nth-child(4) { width: 13%; }
-.installments-table th:nth-child(5) { width: 13%; }
-.installments-table th:nth-child(6) { width: 11%; }
-.installments-table th:last-child { width: 15%; }
+.installments-table th:first-child { width: 18%; }
+.installments-table th:nth-child(2) { width: 17%; }
+.installments-table th:nth-child(3) { width: 8%; }
+.installments-table th:nth-child(4) { width: 12%; }
+.installments-table th:nth-child(5) { width: 12%; }
+.installments-table th:nth-child(6) { width: 10%; }
+.installments-table th:last-child { width: 23%; }
 .installments-table td { height: 70px; padding: 10px 13px; border-bottom: 1px solid #edf0ee; overflow: hidden; color: #35413c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .installments-table tbody tr:last-child td { border-bottom: 0; }
 .installments-table tbody tr:hover { background: #fbfcfb; }
@@ -48,8 +48,14 @@
 .installment-status.paid { background: #e5f2ed; color: #167052; }
 .installment-status.cancelled { background: #f0f2f1; color: #68736e; }
 .installment-action-cell { text-align: right; }
+.installment-row-actions { min-height: 34px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .collect-button { min-height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 1px solid #167052; border-radius: 5px; background: white; color: #167052; font-size: 11px; font-weight: 700; }
 .collect-button:hover { background: #167052; color: white; }
+.installment-edit-button, .installment-delete-button { width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center; border-radius: 5px; background: white; font-size: 14px; }
+.installment-edit-button { border: 1px solid #cfd8d4; color: #4f6159; }
+.installment-edit-button:hover { border-color: #167052; color: #167052; }
+.installment-delete-button { border: 1px solid #ead3d4; color: #b33a40; }
+.installment-delete-button:hover { border-color: #c93f45; background: #fff2f2; }
 .paid-mark { display: inline-flex; align-items: center; gap: 5px; color: #48806c; font-size: 10px; }
 .installments-loading { min-width: 930px; padding: 14px 16px; }
 .installments-loading span { height: 54px; display: block; margin-bottom: 9px; border-radius: 4px; background: linear-gradient(90deg, #f0f2f1, #f8f9f8, #f0f2f1); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
@@ -61,6 +67,21 @@
 .installments-error { border-left: 3px solid #c93f45; background: #fff0f0; color: #912b30; }
 .installments-error button { margin-left: auto; border: 0; background: transparent; color: inherit; font-weight: 700; }
 .installments-success { border-left: 3px solid #23805f; background: #eaf5f0; color: #165e45; }
+
+.installment-form-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(8, 19, 15, 0.56); }
+.installment-form-modal { width: min(100%, 520px); border-radius: 7px; background: white; box-shadow: 0 24px 70px rgba(12, 27, 21, 0.25); overflow: hidden; }
+.installment-form-modal > header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid #e5eae7; }
+.installment-form-modal > header h2 { margin: 0 0 4px; font-family: "Manrope", sans-serif; font-size: 18px; }
+.installment-form-modal > header p { margin: 0; color: #818b86; font-size: 12px; }
+.installment-form-modal > header button { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid #dce2df; border-radius: 5px; background: white; color: #53605a; font-size: 18px; }
+.installment-form-body { padding: 22px 20px 25px; }
+.installment-form-error { margin-bottom: 18px; padding: 10px 12px; border-left: 3px solid #c93f45; background: #fff0f0; color: #922b31; font-size: 12px; }
+.installment-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.installment-form-grid label > span { display: block; margin-bottom: 7px; color: #47534e; font-size: 12px; font-weight: 600; }
+.installment-form-grid input { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #d7dedb; border-radius: 5px; outline: 0; background: white; color: #1d2823; font: inherit; font-size: 13px; }
+.installment-form-grid input:focus { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
+.installment-form-hint { margin: 16px 0 0; color: #7a8580; font-size: 11px; }
+.installment-form-modal footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #e5eae7; background: #fafbfa; }
 
 .payment-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(8, 19, 15, 0.56); }
 .payment-modal { width: min(100%, 560px); max-height: calc(100vh - 40px); border-radius: 7px; background: white; box-shadow: 0 24px 70px rgba(12, 27, 21, 0.25); overflow-y: auto; }
@@ -77,6 +98,9 @@
 .payment-interest-summary { width: min(100%, 330px); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 13px 0 5px; }
 .payment-interest-summary span { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 1px solid #e2e7e4; border-radius: 5px; background: white; font-size: 10px; }
 .payment-interest-summary b { color: #35413c; font-size: 12px; }
+.payment-balance-summary { width: min(100%, 330px); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 3px 0 8px; }
+.payment-balance-summary span { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 1px solid #ecd9b8; border-radius: 5px; background: #fff9ef; color: #8a5a16; font-size: 10px; }
+.payment-balance-summary b { color: #68430f; font-size: 12px; }
 .installment-money { overflow: visible !important; }
 .installment-money small { display: block; margin-top: 3px; color: #b05a24; font-size: 9px; }
 .payment-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; margin-top: 20px; }
@@ -85,7 +109,7 @@
 .payment-form-grid input, .payment-form-grid select { height: 42px; padding: 0 11px; }
 .payment-form-grid textarea { min-height: 88px; padding: 11px; resize: vertical; }
 .payment-form-grid input:focus, .payment-form-grid select:focus, .payment-form-grid textarea:focus { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
-.payment-notes-field { grid-column: 1 / -1; }
+.payment-allocation-field, .payment-notes-field { grid-column: 1 / -1; }
 .payment-modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #e5eae7; background: #fafbfa; }
 
 @media (max-width: 800px) {
@@ -111,11 +135,17 @@
 }
 
 @media (max-width: 520px) {
+  .installment-form-backdrop { padding: 0; place-items: end center; }
+  .installment-form-modal { border-radius: 7px 7px 0 0; }
+  .installment-form-grid { grid-template-columns: 1fr; }
+  .installment-form-modal footer button { flex: 1; }
   .payment-backdrop { padding: 0; place-items: end center; }
   .payment-modal { max-height: 94vh; border-radius: 7px 7px 0 0; }
   .payment-form-grid { grid-template-columns: 1fr; }
   .payment-notes-field { grid-column: auto; }
+  .payment-allocation-field { grid-column: auto; }
   .payment-modal-actions { position: sticky; bottom: 0; }
   .payment-modal-actions button { flex: 1; }
   .payment-interest-summary { grid-template-columns: 1fr; }
+  .payment-balance-summary { grid-template-columns: 1fr; }
 }

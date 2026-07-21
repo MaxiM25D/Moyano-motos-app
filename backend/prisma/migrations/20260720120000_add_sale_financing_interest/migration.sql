@@ -1,0 +1,3 @@
+ALTER TABLE "Sale"
+ADD COLUMN "financingInterestRate" DECIMAL(5,2) NOT NULL DEFAULT 0,
+ADD COLUMN "financingInterestAmount" DECIMAL(12,2) NOT NULL DEFAULT 0;

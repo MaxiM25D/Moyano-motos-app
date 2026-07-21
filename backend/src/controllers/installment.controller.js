@@ -48,6 +48,28 @@ export const getInstallmentsBySaleId = async (req, res) => {
   }
 };
 
+export const updateInstallment = async (req, res) => {
+  try {
+    const installment = await installmentService.updateInstallment(req.params.id, req.body);
+    return sendSuccess(res, "Cuota actualizada", {
+      installment: new InstallmentDTO(installment)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+export const deleteInstallment = async (req, res) => {
+  try {
+    const installment = await installmentService.deleteInstallment(req.params.id);
+    return sendSuccess(res, "Cuota eliminada", {
+      installment: new InstallmentDTO(installment)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 export const payInstallment = async (req, res) => {
   try {
     const installment = await installmentService.payInstallment(req.params.id, {

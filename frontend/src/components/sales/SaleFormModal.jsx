@@ -5,7 +5,7 @@ import { getClients } from "../../services/clientService.js";
 import { getMotorcycles } from "../../services/motorcycleService.js";
 import { createSale } from "../../services/saleService.js";
 
-const plans = [12, 15, 18, 24, 36];
+const installmentOptions = Array.from({ length: 60 }, (_, index) => index + 1);
 
 const toInputDate = (date) => {
   const offset = date.getTimezoneOffset();
@@ -31,6 +31,7 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
     motorcycleId: "",
     salePrice: "",
     downPayment: "",
+    financingInterestRate: "0",
     installmentPlan: "12",
     saleDate: today,
     firstDueDate: addMonth(today)
@@ -72,9 +73,12 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
     const price = Number(form.salePrice) || 0;
     const downPayment = Number(form.downPayment) || 0;
     const financed = Math.max(price - downPayment, 0);
-    const installment = financed / Number(form.installmentPlan);
-    return { financed, installment };
-  }, [form.downPayment, form.installmentPlan, form.salePrice]);
+    const interestRate = Number(form.financingInterestRate) || 0;
+    const interest = financed * interestRate / 100;
+    const totalFinanced = financed + interest;
+    const installment = totalFinanced / Number(form.installmentPlan);
+    return { financed, interest, totalFinanced, installment };
+  }, [form.downPayment, form.financingInterestRate, form.installmentPlan, form.salePrice]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -101,6 +105,7 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
         motorcycleId: Number(form.motorcycleId),
         salePrice: Number(form.salePrice),
         downPayment: Number(form.downPayment),
+        financingInterestRate: Number(form.financingInterestRate),
         installmentPlan: Number(form.installmentPlan),
         saleDate: form.saleDate,
         firstDueDate: form.firstDueDate
@@ -170,19 +175,23 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                       <span>Entrega inicial *</span>
                       <input type="number" name="downPayment" value={form.downPayment} onChange={handleChange} min="0" step="0.01" placeholder="0,00" required />
                     </label>
-                    <label className="sale-plan-field">
-                      <span>Plan de cuotas *</span>
-                      <div className="plan-options">
-                        {plans.map((plan) => (
-                          <button className={form.installmentPlan === String(plan) ? "is-selected" : ""} type="button" key={plan} onClick={() => setForm((current) => ({ ...current, installmentPlan: String(plan) }))}>{plan}</button>
-                        ))}
-                      </div>
+                    <label>
+                      <span>Cantidad de cuotas *</span>
+                      <select name="installmentPlan" value={form.installmentPlan} onChange={handleChange} required>
+                        {installmentOptions.map((amount) => <option key={amount} value={amount}>{amount} {amount === 1 ? "cuota" : "cuotas"}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Interes de financiacion (%)</span>
+                      <input type="number" name="financingInterestRate" value={form.financingInterestRate} onChange={handleChange} min="0" max="100" step="0.01" placeholder="0,00" />
                     </label>
                   </div>
                 </div>
 
                 <div className="financing-preview">
-                  <div><span>Monto financiado</span><strong>{money.format(calculation.financed)}</strong></div>
+                  <div><span>Capital financiado</span><strong>{money.format(calculation.financed)}</strong></div>
+                  <div><span>Interes agregado ({Number(form.financingInterestRate) || 0}%)</span><strong>{money.format(calculation.interest)}</strong></div>
+                  <div className="financing-total"><span>Total con interes</span><strong>{money.format(calculation.totalFinanced)}</strong></div>
                   <div><span>{form.installmentPlan} cuotas aproximadas de</span><strong>{money.format(calculation.installment)}</strong></div>
                 </div>
               </>
