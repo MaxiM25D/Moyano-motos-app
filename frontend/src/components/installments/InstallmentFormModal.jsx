@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiSave, FiX } from "react-icons/fi";
 import { getApiError } from "../../services/api.js";
-import { updateInstallment } from "../../services/installmentService.js";
+import { createInstallment, updateInstallment } from "../../services/installmentService.js";
 
 const toDateInput = (value) => {
   const date = new Date(value);
@@ -9,10 +9,33 @@ const toDateInput = (value) => {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 };
 
-function InstallmentFormModal({ installment, onClose, onSaved }) {
+const addCalendarMonths = (value, months) => {
+  const source = new Date(value);
+  const targetMonthIndex = source.getUTCMonth() + Number(months);
+  const targetYear = source.getUTCFullYear() + Math.floor(targetMonthIndex / 12);
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const result = new Date(source);
+
+  result.setUTCFullYear(targetYear, targetMonth, Math.min(source.getUTCDate(), lastDayOfTargetMonth));
+  return result;
+};
+
+const getNextDueDate = (sale) => {
+  const firstInstallment = sale.installments[0];
+  const nextDate = firstInstallment
+    ? addCalendarMonths(firstInstallment.dueDate, sale.installments.length)
+    : addCalendarMonths(new Date(), 1);
+  return toDateInput(nextDate);
+};
+
+function InstallmentFormModal({ installment = null, sale = null, onClose, onSaved }) {
+  const isCreating = !installment;
+  const currentSale = sale || installment.sale;
+  const latestInstallment = currentSale.installments?.at(-1);
   const [form, setForm] = useState({
-    amount: String(installment.amount),
-    dueDate: toDateInput(installment.dueDate)
+    amount: String(installment?.amount || currentSale.installmentAmount || latestInstallment?.amount),
+    dueDate: installment ? toDateInput(installment.dueDate) : getNextDueDate(currentSale)
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -31,13 +54,15 @@ function InstallmentFormModal({ installment, onClose, onSaved }) {
     setSaving(true);
 
     try {
-      const savedInstallment = await updateInstallment(installment.id, {
-        amount: Number(form.amount),
-        dueDate: form.dueDate
-      });
+      const installmentData = isCreating
+        ? { amount: Number(form.amount), dueDate: form.dueDate }
+        : { dueDate: form.dueDate };
+      const savedInstallment = isCreating
+        ? await createInstallment(currentSale.id, installmentData)
+        : await updateInstallment(installment.id, installmentData);
       onSaved(savedInstallment);
     } catch (requestError) {
-      setError(getApiError(requestError, "No se pudo actualizar la cuota"));
+      setError(getApiError(requestError, isCreating ? "No se pudo agregar la cuota" : "No se pudo actualizar la cuota"));
     } finally {
       setSaving(false);
     }
@@ -50,8 +75,8 @@ function InstallmentFormModal({ installment, onClose, onSaved }) {
       <section className="installment-form-modal" role="dialog" aria-modal="true" aria-labelledby="installment-form-title">
         <header>
           <div>
-            <h2 id="installment-form-title">Editar cuota {installment.number}</h2>
-            <p>{installment.sale?.client?.name} · Venta #{installment.sale?.saleNumber || installment.saleId}</p>
+            <h2 id="installment-form-title">{isCreating ? "Agregar cuota" : `Editar cuota ${installment.number}`}</h2>
+            <p>{currentSale.client?.name} - Venta #{currentSale.saleNumber || currentSale.id}</p>
           </div>
           <button type="button" onClick={onClose} disabled={saving} aria-label="Cerrar" title="Cerrar"><FiX /></button>
         </header>
@@ -59,22 +84,24 @@ function InstallmentFormModal({ installment, onClose, onSaved }) {
         <form onSubmit={handleSubmit}>
           <div className="installment-form-body">
             {error && <div className="installment-form-error" role="alert">{error}</div>}
-            <div className="installment-form-grid">
-              <label>
-                <span>Importe *</span>
-                <input type="number" min="0.01" step="0.01" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} required autoFocus />
-              </label>
+            <div className={`installment-form-grid${isCreating ? "" : " single"}`}>
+              {isCreating && (
+                <label>
+                  <span>Importe *</span>
+                  <input type="number" min="0.01" step="0.01" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} required autoFocus />
+                </label>
+              )}
               <label>
                 <span>Vencimiento *</span>
-                <input type="date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} required />
+                <input type="date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} required autoFocus={!isCreating} />
               </label>
             </div>
-            <p className="installment-form-hint">Solo se modifica esta cuota. Las cuotas pagadas permanecen protegidas.</p>
+            <p className="installment-form-hint">{isCreating ? `Se agregara como cuota ${currentSale.installments.length + 1} al final del plan.` : "La nueva fecha se aplicara a esta cuota y reprogramara mensualmente todas las siguientes. Las cuotas pagadas permanecen protegidas."}</p>
           </div>
 
           <footer>
             <button className="secondary-button" type="button" onClick={onClose} disabled={saving}>Cancelar</button>
-            <button className="primary-button" type="submit" disabled={saving}><FiSave />{saving ? "Guardando..." : "Guardar cambios"}</button>
+            <button className="primary-button" type="submit" disabled={saving}><FiSave />{saving ? "Guardando..." : isCreating ? "Agregar cuota" : "Guardar cambios"}</button>
           </footer>
         </form>
       </section>

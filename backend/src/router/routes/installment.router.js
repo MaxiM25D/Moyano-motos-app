@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createInstallment,
   deleteInstallment,
   getInstallments,
   getInstallmentsBySaleId,
@@ -12,6 +13,7 @@ import { validate } from "../../middlewares/validate.middleware.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../../middlewares/role.middleware.js";
 import {
+  createInstallmentSchema,
   payInstallmentSchema,
   updateInstallmentSchema
 } from "../../validators/installment.validator.js";
@@ -22,6 +24,13 @@ router.get("/", authMiddleware, getInstallments);
 router.get("/pending", authMiddleware, getPendingInstallments);
 router.get("/overdue", authMiddleware, getOverdueInstallments);
 router.get("/sale/:saleId", authMiddleware, getInstallmentsBySaleId);
+router.post(
+  "/sale/:saleId",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  validate(createInstallmentSchema),
+  createInstallment
+);
 router.patch(
   "/:id",
   authMiddleware,

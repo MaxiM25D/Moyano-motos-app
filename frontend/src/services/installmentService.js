@@ -5,6 +5,11 @@ export const getInstallments = async () => {
   return response.data.data.installments;
 };
 
+export const createInstallment = async (saleId, installment) => {
+  const response = await api.post(`/installments/sale/${saleId}`, installment);
+  return response.data.data.installment;
+};
+
 export const payInstallment = async (id, payment) => {
   const response = await api.patch(`/installments/${id}/pay`, payment);
   return response.data.data.installment;

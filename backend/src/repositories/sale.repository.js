@@ -8,6 +8,11 @@ const saleInclude = {
   },
   saleReceipt: true,
   installments: {
+    include: {
+      payment: {
+        select: { amount: true }
+      }
+    },
     orderBy: { number: "asc" }
   }
 };

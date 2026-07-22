@@ -1,4 +1,5 @@
 import { prisma } from "../config/db/prisma.client.js";
+import { addCalendarMonths } from "../utils/date.js";
 
 const installmentInclude = {
   payment: {
@@ -10,6 +11,27 @@ const installmentInclude = {
     include: {
       client: true,
       motorcycle: true
+    }
+  }
+};
+
+const normalizePendingDueDates = async (tx, saleId) => {
+  const installments = await tx.installment.findMany({
+    where: { saleId: Number(saleId) },
+    orderBy: { number: "asc" }
+  });
+  const firstInstallment = installments[0];
+  if (!firstInstallment) return;
+
+  for (const installment of installments) {
+    if (installment.status !== "PENDING") continue;
+
+    const dueDate = addCalendarMonths(firstInstallment.dueDate, installment.number - 1);
+    if (dueDate.getTime() !== installment.dueDate.getTime()) {
+      await tx.installment.update({
+        where: { id: installment.id },
+        data: { dueDate }
+      });
     }
   }
 };
@@ -56,6 +78,17 @@ export class InstallmentRepository {
     });
   }
 
+  getSaleWithInstallments(saleId) {
+    return prisma.sale.findUnique({
+      where: { id: Number(saleId) },
+      include: {
+        installments: {
+          orderBy: { number: "asc" }
+        }
+      }
+    });
+  }
+
   getUserById(id) {
     return prisma.user.findUnique({
       where: { id: Number(id) }
@@ -73,11 +106,71 @@ export class InstallmentRepository {
     });
   }
 
-  updateInstallment(id, data) {
-    return prisma.installment.update({
-      where: { id: Number(id) },
-      data,
-      include: installmentInclude
+  rescheduleInstallments(installment, dueDate) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(installment.saleId)})`;
+
+      const installmentsToUpdate = await tx.installment.findMany({
+        where: {
+          saleId: installment.saleId,
+          number: { gte: installment.number },
+          status: "PENDING"
+        },
+        orderBy: { number: "asc" }
+      });
+
+      for (const item of installmentsToUpdate) {
+        await tx.installment.update({
+          where: { id: item.id },
+          data: {
+            dueDate: addCalendarMonths(dueDate, item.number - installment.number)
+          }
+        });
+      }
+
+      return tx.installment.findUnique({
+        where: { id: installment.id },
+        include: installmentInclude
+      });
+    });
+  }
+
+  createInstallment(saleId, data) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(saleId)})`;
+
+      await normalizePendingDueDates(tx, saleId);
+
+      const latestInstallment = await tx.installment.findFirst({
+        where: { saleId: Number(saleId) },
+        orderBy: { number: "desc" }
+      });
+      const number = (latestInstallment?.number || 0) + 1;
+
+      const installment = await tx.installment.create({
+        data: {
+          saleId: Number(saleId),
+          number,
+          amount: data.amount,
+          dueDate: data.dueDate
+        }
+      });
+
+      const installmentPlan = await tx.installment.count({
+        where: { saleId: Number(saleId) }
+      });
+      await tx.sale.update({
+        where: { id: Number(saleId) },
+        data: {
+          installmentPlan,
+          status: "ACTIVE"
+        }
+      });
+
+      return tx.installment.findUnique({
+        where: { id: installment.id },
+        include: installmentInclude
+      });
     });
   }
 
@@ -115,6 +208,8 @@ export class InstallmentRepository {
           data: { number: laterInstallment.number - 1 }
         });
       }
+
+      await normalizePendingDueDates(tx, installment.saleId);
 
       const installmentPlan = await tx.installment.count({
         where: { saleId: installment.saleId }

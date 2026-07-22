@@ -106,6 +106,11 @@ function Sales() {
     }
   };
 
+  const handlePlanChanged = (updatedSale) => {
+    setSales((current) => current.map((sale) => sale.id === updatedSale.id ? updatedSale : sale));
+    setSelectedSale(updatedSale);
+  };
+
   return (
     <section className="sales-page">
       <header className="sales-header">
@@ -158,7 +163,7 @@ function Sales() {
       </div>
 
       {createOpen && <SaleFormModal soldMotorcycleIds={soldMotorcycleIds} onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
-      {selectedSale && <SaleDetailModal sale={selectedSale} onClose={() => setSelectedSale(null)} />}
+      {selectedSale && <SaleDetailModal sale={selectedSale} canManagePlan={canDelete} onPlanChanged={handlePlanChanged} onClose={() => setSelectedSale(null)} />}
       {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.saleNumber}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiLock, FiMail, FiShield } from "react-icons/fi";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
@@ -16,6 +16,7 @@ function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const sessionReason = location.state?.sessionReason;
 
   if (user) {
     return <Navigate to="/" replace />;
@@ -55,6 +56,14 @@ function Login() {
           </header>
 
           {error && <div className="form-error" role="alert">{error}</div>}
+          {sessionReason && (
+            <div className="session-notice" role="alert">
+              <FiShield />
+              <span>{sessionReason === "expiring"
+                ? "Tu sesion esta por vencer. Inicia sesion nuevamente para continuar de forma segura."
+                : "Tu sesion vencio por seguridad. Inicia sesion nuevamente para continuar."}</span>
+            </div>
+          )}
 
           <label htmlFor="email">Email</label>
           <div className="input-wrap">

@@ -1,4 +1,5 @@
 import { SaleRepository } from "../repositories/sale.repository.js";
+import { addCalendarMonths } from "../utils/date.js";
 import { HttpError } from "../utils/httpError.js";
 
 const saleRepository = new SaleRepository();
@@ -6,12 +7,6 @@ const CENTS_FACTOR = 100;
 
 const toCents = (amount) => Math.round(Number(amount) * CENTS_FACTOR);
 const toMoney = (cents) => (cents / CENTS_FACTOR).toFixed(2);
-
-const addMonths = (date, months) => {
-  const newDate = new Date(date);
-  newDate.setMonth(newDate.getMonth() + months);
-  return newDate;
-};
 
 const validateId = (id, label) => {
   const parsedId = Number(id);
@@ -69,7 +64,7 @@ export class SaleService {
     const totalFinancedCents = financedCents + financingInterestCents;
     const installmentCents = Math.round(totalFinancedCents / installmentPlan);
     const saleDate = data.saleDate ? new Date(data.saleDate) : new Date();
-    const firstDueDate = data.firstDueDate ? new Date(data.firstDueDate) : addMonths(saleDate, 1);
+    const firstDueDate = data.firstDueDate ? new Date(data.firstDueDate) : addCalendarMonths(saleDate, 1);
 
     const installments = Array.from({ length: installmentPlan }, (_, index) => {
       const number = index + 1;
@@ -81,7 +76,7 @@ export class SaleService {
       return {
         number,
         amount: toMoney(amountCents),
-        dueDate: addMonths(firstDueDate, index)
+        dueDate: addCalendarMonths(firstDueDate, index)
       };
     });
 

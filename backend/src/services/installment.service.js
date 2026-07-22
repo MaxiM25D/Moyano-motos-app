@@ -37,6 +37,30 @@ export class InstallmentService {
     return installmentRepository.getInstallmentsBySaleId(saleId);
   }
 
+  async createInstallment(saleId, data) {
+    const parsedSaleId = validateId(saleId, "ID de venta");
+    const sale = await installmentRepository.getSaleWithInstallments(parsedSaleId);
+
+    if (!sale) throw new HttpError("Venta no encontrada", 404);
+    if (sale.status === "CANCELLED") {
+      throw new HttpError("No se pueden agregar cuotas a una venta cancelada", 409);
+    }
+    if (sale.installments.length >= 60) {
+      throw new HttpError("El plan no puede superar las 60 cuotas", 409);
+    }
+
+    const dueDate = toDueDate(data.dueDate);
+    const latestInstallment = sale.installments.at(-1);
+    if (latestInstallment && dueDate <= latestInstallment.dueDate) {
+      throw new HttpError("El vencimiento debe ser posterior al de la ultima cuota", 400);
+    }
+
+    return installmentRepository.createInstallment(parsedSaleId, {
+      amount: toMoney(toCents(data.amount)),
+      dueDate
+    });
+  }
+
   async updateInstallment(id, data) {
     const installmentId = validateId(id, "ID de cuota");
     const installment = await installmentRepository.getInstallmentById(installmentId);
@@ -46,11 +70,24 @@ export class InstallmentService {
       throw new HttpError("Solo se pueden modificar cuotas pendientes", 409);
     }
 
-    const updateData = {};
-    if (data.amount !== undefined) updateData.amount = toMoney(toCents(data.amount));
-    if (data.dueDate !== undefined) updateData.dueDate = toDueDate(data.dueDate);
+    const sale = await installmentRepository.getSaleWithInstallments(installment.saleId);
+    const installmentIndex = sale.installments.findIndex((item) => item.id === installmentId);
+    const previousInstallment = sale.installments[installmentIndex - 1];
+    const dueDate = toDueDate(data.dueDate);
 
-    return installmentRepository.updateInstallment(installmentId, updateData);
+    if (previousInstallment && dueDate <= previousInstallment.dueDate) {
+      throw new HttpError("El vencimiento debe ser posterior al de la cuota anterior", 400);
+    }
+
+    const paidInstallmentsAfter = await installmentRepository.countPaidInstallmentsAfter(
+      installment.saleId,
+      installment.number
+    );
+    if (paidInstallmentsAfter > 0) {
+      throw new HttpError("No se puede reprogramar porque hay cuotas posteriores pagadas", 409);
+    }
+
+    return installmentRepository.rescheduleInstallments(installment, dueDate);
   }
 
   async deleteInstallment(id) {

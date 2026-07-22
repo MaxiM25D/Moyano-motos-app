@@ -5,6 +5,11 @@ export const getSales = async () => {
   return response.data.data.sales;
 };
 
+export const getSaleById = async (id) => {
+  const response = await api.get(`/sales/${id}`);
+  return response.data.data.sale;
+};
+
 export const createSale = async (sale) => {
   const response = await api.post("/sales", sale);
   return response.data.data.sale;

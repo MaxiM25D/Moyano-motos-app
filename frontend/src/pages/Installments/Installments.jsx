@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiTrash2, FiX } from "react-icons/fi";
-import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiSliders, FiX } from "react-icons/fi";
 import InstallmentFormModal from "../../components/installments/InstallmentFormModal.jsx";
 import PaymentModal from "../../components/installments/PaymentModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { deleteInstallment, getInstallments } from "../../services/installmentService.js";
+import { getInstallments } from "../../services/installmentService.js";
 import "./Installments.css";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
@@ -14,22 +13,66 @@ const date = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit"
 const filters = [
   { value: "ALL", label: "Todas" },
   { value: "PENDING", label: "Pendientes" },
+  { value: "UPCOMING", label: "Proximas" },
   { value: "OVERDUE", label: "Vencidas" },
   { value: "PAID", label: "Pagadas" }
 ];
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+const startOfDay = (value) => {
+  const result = new Date(value);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const daysUntilDue = (installment) => Math.round(
+  (startOfDay(installment.dueDate) - startOfDay(new Date())) / DAY_IN_MS
+);
+
 const isOverdue = (installment) =>
-  installment.status === "PENDING" && new Date(installment.dueDate) < new Date();
+  installment.status === "PENDING" && daysUntilDue(installment) < 0;
+
+const isUpcoming = (installment) => {
+  const days = daysUntilDue(installment);
+  return installment.status === "PENDING" && days >= 0 && days <= 30;
+};
+
+const getUrgency = (installment) => {
+  if (installment.status !== "PENDING") return { className: "", label: "" };
+
+  const days = daysUntilDue(installment);
+  if (days < 0) {
+    const elapsed = Math.abs(days);
+    return { className: "overdue", label: `Vencida hace ${elapsed} ${elapsed === 1 ? "dia" : "dias"}` };
+  }
+  if (days === 0) return { className: "today", label: "Vence hoy" };
+  if (days === 1) return { className: "soon", label: "Vence manana" };
+  if (days <= 7) return { className: "soon", label: `Vence en ${days} dias` };
+  if (days <= 30) return { className: "upcoming", label: `Vence en ${days} dias` };
+  return { className: "", label: "" };
+};
+
+const priorityFor = (installment) => {
+  if (installment.status === "PENDING") {
+    const days = daysUntilDue(installment);
+    if (days < 0) return 0;
+    if (days <= 7) return 1;
+    if (days <= 30) return 2;
+    return 3;
+  }
+  if (installment.status === "PAID") return 4;
+  return 5;
+};
 
 function Installments() {
   const { user } = useAuth();
   const [installments, setInstallments] = useState([]);
   const [filter, setFilter] = useState("ALL");
+  const [sortBy, setSortBy] = useState("PRIORITY");
   const [search, setSearch] = useState("");
   const [selectedInstallment, setSelectedInstallment] = useState(null);
   const [installmentToEdit, setInstallmentToEdit] = useState(null);
-  const [installmentToDelete, setInstallmentToDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -71,10 +114,19 @@ function Installments() {
     };
   }, [installments]);
 
+  const filterCounts = useMemo(() => ({
+    ALL: installments.length,
+    PENDING: installments.filter((item) => item.status === "PENDING").length,
+    UPCOMING: installments.filter(isUpcoming).length,
+    OVERDUE: installments.filter(isOverdue).length,
+    PAID: installments.filter((item) => item.status === "PAID").length
+  }), [installments]);
+
   const visibleInstallments = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return installments.filter((item) => {
+    const filtered = installments.filter((item) => {
       const matchesFilter = filter === "ALL"
+        || (filter === "UPCOMING" ? isUpcoming(item) : false)
         || (filter === "OVERDUE" ? isOverdue(item) : item.status === filter);
       const matchesSearch = !term || [
         item.sale?.client?.name,
@@ -87,7 +139,31 @@ function Installments() {
       ].some((value) => String(value || "").toLowerCase().includes(term));
       return matchesFilter && matchesSearch;
     });
-  }, [filter, installments, search]);
+
+    return filtered.sort((first, second) => {
+      if (sortBy === "CLIENT") {
+        return String(first.sale?.client?.name || "").localeCompare(
+          String(second.sale?.client?.name || ""),
+          "es"
+        ) || new Date(first.dueDate) - new Date(second.dueDate);
+      }
+      if (sortBy === "AMOUNT_DESC") {
+        return Number(second.amount) - Number(first.amount)
+          || new Date(first.dueDate) - new Date(second.dueDate);
+      }
+      if (sortBy === "DUE_DATE") {
+        return new Date(first.dueDate) - new Date(second.dueDate);
+      }
+
+      const priorityDifference = priorityFor(first) - priorityFor(second);
+      if (priorityDifference !== 0) return priorityDifference;
+      if (first.status === "PAID" && second.status === "PAID") {
+        return new Date(second.paidAt || second.payment?.paidAt || 0)
+          - new Date(first.paidAt || first.payment?.paidAt || 0);
+      }
+      return new Date(first.dueDate) - new Date(second.dueDate);
+    });
+  }, [filter, installments, search, sortBy]);
 
   const handlePaid = async (paidInstallment) => {
     setSelectedInstallment(null);
@@ -99,22 +175,6 @@ function Installments() {
     setInstallmentToEdit(null);
     setNotice(`La cuota ${updatedInstallment.number} fue actualizada.`);
     await loadInstallments();
-  };
-
-  const handleDelete = async () => {
-    setDeleting(true);
-    setError("");
-    try {
-      const deletedInstallment = await deleteInstallment(installmentToDelete.id);
-      setInstallmentToDelete(null);
-      setNotice(`La cuota ${deletedInstallment.number} fue eliminada y el plan fue actualizado.`);
-      await loadInstallments();
-    } catch (requestError) {
-      setInstallmentToDelete(null);
-      setError(getApiError(requestError, "No se pudo eliminar la cuota"));
-    } finally {
-      setDeleting(false);
-    }
   };
 
   return (
@@ -134,9 +194,21 @@ function Installments() {
 
       <div className="installments-controls">
         <div className="installment-filters" aria-label="Filtrar cuotas">
-          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}
+          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => setFilter(item.value)}><span>{item.label}</span><small>{filterCounts[item.value]}</small></button>)}
         </div>
-        <div className="installments-search"><FiSearch /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cliente, DNI, moto o venta" aria-label="Buscar cuotas" />{search && <button onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>}</div>
+        <div className="installments-control-right">
+          <label className="installments-sort">
+            <FiSliders />
+            <span className="sr-only">Ordenar cuotas</span>
+            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Ordenar cuotas">
+              <option value="PRIORITY">Prioridad</option>
+              <option value="DUE_DATE">Vencimiento</option>
+              <option value="CLIENT">Cliente</option>
+              <option value="AMOUNT_DESC">Mayor importe</option>
+            </select>
+          </label>
+          <div className="installments-search"><FiSearch /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cliente, DNI, moto o venta" aria-label="Buscar cuotas" />{search && <button onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>}</div>
+        </div>
       </div>
 
       <div className="installments-table-wrap">
@@ -148,13 +220,16 @@ function Installments() {
             <tbody>
               {visibleInstallments.map((item) => {
                 const overdue = isOverdue(item);
+                const urgency = getUrgency(item);
                 const visualStatus = overdue ? "OVERDUE" : item.status;
                 return (
-                  <tr key={item.id}>
+                  <tr className={urgency.className ? `installment-row-${urgency.className}` : ""} key={item.id}>
                     <td data-label="Cliente"><div className="installment-client"><strong>{item.sale?.client?.name || "-"}</strong><small>DNI {item.sale?.client?.dni || "-"}</small></div></td>
                     <td data-label="Moto"><div className="installment-moto"><strong>{item.sale?.motorcycle?.brand} {item.sale?.motorcycle?.model}</strong><small>{item.sale?.motorcycle?.domain || `Venta #${item.sale?.saleNumber || item.saleId}`}</small></div></td>
                     <td data-label="Cuota"><strong>{item.number}</strong><span> / {item.sale?.installmentPlan || "-"}</span></td>
-                    <td data-label="Vencimiento" className={overdue ? "overdue-date" : ""}>{date.format(new Date(item.dueDate))}</td>
+                    <td data-label="Vencimiento" className={overdue ? "overdue-date" : ""}>
+                      <div className="installment-due-date"><span>{date.format(new Date(item.dueDate))}</span>{urgency.label && <small className={urgency.className}>{urgency.label}</small>}</div>
+                    </td>
                     <td data-label="Importe" className="installment-money">
                       {money.format(Number(item.status === "PAID" ? item.payment?.amount || item.amount : item.amount))}
                       {Number(item.payment?.interestRate || 0) > 0 && <small>Incluye {item.payment.interestRate}% de interes</small>}
@@ -165,7 +240,6 @@ function Installments() {
                       <div className="installment-row-actions">
                         {item.status === "PENDING" && canCollect && <button className="collect-button" onClick={() => setSelectedInstallment(item)}><FiDollarSign />Cobrar</button>}
                         {item.status === "PENDING" && canManagePlan && <button className="installment-edit-button" onClick={() => setInstallmentToEdit(item)} aria-label={`Editar cuota ${item.number}`} title="Editar cuota"><FiEdit2 /></button>}
-                        {item.status === "PENDING" && canManagePlan && <button className="installment-delete-button" onClick={() => setInstallmentToDelete(item)} aria-label={`Eliminar cuota ${item.number}`} title="Eliminar cuota"><FiTrash2 /></button>}
                         {item.status === "PAID" && <span className="paid-mark"><FiCheckCircle />{item.payment?.method === "TRANSFER" ? "Transferencia" : item.payment?.method === "CARD" ? "Tarjeta" : item.payment?.method === "OTHER" ? "Otro" : "Efectivo"}</span>}
                         {item.status === "CANCELLED" && "-"}
                       </div>
@@ -182,7 +256,6 @@ function Installments() {
 
       {selectedInstallment && <PaymentModal installment={selectedInstallment} onClose={() => setSelectedInstallment(null)} onPaid={handlePaid} />}
       {installmentToEdit && <InstallmentFormModal installment={installmentToEdit} onClose={() => setInstallmentToEdit(null)} onSaved={handleUpdated} />}
-      {installmentToDelete && <ConfirmDialog title="Eliminar cuota" message={`Se eliminara la cuota ${installmentToDelete.number} de la venta #${installmentToDelete.sale?.saleNumber || installmentToDelete.saleId}. Las cuotas posteriores se renumeraran y esta accion no se puede deshacer.`} loading={deleting} onCancel={() => setInstallmentToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );
 }

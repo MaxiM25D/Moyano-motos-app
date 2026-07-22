@@ -1,4 +1,5 @@
 import axios from "axios";
+import { notifySessionEnded } from "./sessionEvents.js";
 
 const renderApiHost = import.meta.env.VITE_API_HOST;
 
@@ -21,9 +22,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = String(error.config?.url || "").includes("/auth/login");
+    const hadSession = Boolean(localStorage.getItem("token"));
+
+    if (error.response?.status === 401 && !isLoginRequest && hadSession) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      notifySessionEnded("expired");
     }
 
     return Promise.reject(error);

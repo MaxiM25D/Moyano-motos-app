@@ -16,8 +16,15 @@
 
 .installments-controls { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 16px; border: 1px solid #e0e6e3; border-bottom: 0; border-radius: 7px 7px 0 0; background: white; }
 .installment-filters { display: flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid #dfe5e2; border-radius: 5px; background: #f4f6f5; }
-.installment-filters button { height: 31px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #69746f; font-size: 11px; font-weight: 600; }
+.installment-filters button { height: 31px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #69746f; font-size: 11px; font-weight: 600; }
 .installment-filters button.is-active { background: white; color: #167052; box-shadow: 0 1px 4px rgba(24, 32, 29, 0.09); }
+.installment-filters button small { min-width: 17px; height: 17px; display: inline-grid; place-items: center; padding: 0 4px; border-radius: 8px; background: #e4e9e6; color: #65716b; font-size: 9px; }
+.installment-filters button.is-active small { background: #dceee7; color: #126347; }
+.installments-control-right { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex: 1; }
+.installments-sort { width: 142px; height: 40px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid #d8dfdc; border-radius: 5px; background: white; color: #7a8580; }
+.installments-sort:focus-within { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
+.installments-sort svg { flex: 0 0 auto; }
+.installments-sort select { min-width: 0; flex: 1; border: 0; outline: 0; background: white; color: #35413c; font: inherit; font-size: 11px; }
 .installments-search { width: min(100%, 350px); height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border: 1px solid #d8dfdc; border-radius: 5px; color: #7a8580; }
 .installments-search:focus-within { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
 .installments-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #1d2823; font-size: 12px; }
@@ -42,6 +49,15 @@
 .installment-client small, .installment-moto small { margin-top: 4px; color: #929b97; font-size: 10px; }
 .installment-money { font-weight: 700; }
 .overdue-date { color: #b5383e !important; font-weight: 700; }
+.installment-due-date { display: flex; flex-direction: column; align-items: flex-start; }
+.installment-due-date small { margin-top: 4px; font-size: 9px; font-weight: 700; }
+.installment-due-date small.overdue { color: #b5353b; }
+.installment-due-date small.today, .installment-due-date small.soon { color: #a8640c; }
+.installment-due-date small.upcoming { color: #316b85; }
+.installments-table tr.installment-row-overdue { box-shadow: inset 3px 0 #c93f45; background: #fffafa; }
+.installments-table tr.installment-row-today { box-shadow: inset 3px 0 #d67a17; background: #fffaf2; }
+.installments-table tr.installment-row-soon { box-shadow: inset 3px 0 #e4a33c; }
+.installments-table tr.installment-row-upcoming { box-shadow: inset 3px 0 #4e8097; }
 .installment-status { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 .installment-status.pending { background: #fff3d9; color: #8a5a16; }
 .installment-status.overdue { background: #fae9e9; color: #b5353b; }
@@ -77,6 +93,7 @@
 .installment-form-body { padding: 22px 20px 25px; }
 .installment-form-error { margin-bottom: 18px; padding: 10px 12px; border-left: 3px solid #c93f45; background: #fff0f0; color: #922b31; font-size: 12px; }
 .installment-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.installment-form-grid.single { grid-template-columns: 1fr; }
 .installment-form-grid label > span { display: block; margin-bottom: 7px; color: #47534e; font-size: 12px; font-weight: 600; }
 .installment-form-grid input { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #d7dedb; border-radius: 5px; outline: 0; background: white; color: #1d2823; font: inherit; font-size: 13px; }
 .installment-form-grid input:focus { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
@@ -114,6 +131,8 @@
 
 @media (max-width: 800px) {
   .installments-controls { align-items: stretch; flex-direction: column; }
+  .installments-control-right { width: 100%; }
+  .installments-sort { flex: 0 0 142px; }
   .installments-search { width: 100%; }
   .installment-filters { width: 100%; overflow-x: auto; }
   .installment-filters button { flex: 1; min-width: 78px; }
@@ -132,6 +151,11 @@
 @media (max-width: 640px) {
   .installment-metrics { grid-template-columns: 1fr; }
   .installment-metrics article { min-height: 96px; }
+}
+
+@media (max-width: 560px) {
+  .installments-control-right { align-items: stretch; flex-direction: column; }
+  .installments-sort { width: 100%; flex-basis: 40px; }
 }
 
 @media (max-width: 520px) {

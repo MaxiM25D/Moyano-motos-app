@@ -4,6 +4,17 @@ import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const installmentService = new InstallmentService();
 
+export const createInstallment = async (req, res) => {
+  try {
+    const installment = await installmentService.createInstallment(req.params.saleId, req.body);
+    return sendSuccess(res, "Cuota agregada", {
+      installment: new InstallmentDTO(installment)
+    }, 201);
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 export const getInstallments = async (req, res) => {
   try {
     const installments = await installmentService.getInstallments();

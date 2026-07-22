@@ -1,9 +1,13 @@
 import Joi from "joi";
 
+export const createInstallmentSchema = Joi.object({
+  amount: Joi.number().precision(2).positive().required(),
+  dueDate: Joi.date().required()
+});
+
 export const updateInstallmentSchema = Joi.object({
-  amount: Joi.number().precision(2).positive().optional(),
-  dueDate: Joi.date().optional()
-}).min(1);
+  dueDate: Joi.date().required()
+});
 
 export const payInstallmentSchema = Joi.object({
   amount: Joi.number().precision(2).positive().optional(),

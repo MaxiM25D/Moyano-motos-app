@@ -161,6 +161,24 @@
   font-size: 13px;
 }
 
+.session-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border-left: 3px solid #b7771e;
+  background: #fff7e8;
+  color: #70470f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.session-notice svg {
+  flex: 0 0 16px;
+  margin-top: 1px;
+  font-size: 16px;
+}
+
 @media (max-width: 820px) {
   .login-page { grid-template-columns: 1fr; }
   .login-brand { min-height: 210px; padding: 28px 32px; }

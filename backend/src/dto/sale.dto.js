@@ -1,5 +1,15 @@
 export class SaleDTO {
   constructor(sale) {
+    const installments = sale.installments || [];
+    const scheduledTotalCents = installments.reduce((total, installment) => {
+      if (installment.status === "CANCELLED") return total;
+
+      const amount = installment.status === "PAID" && installment.payment
+        ? installment.payment.amount
+        : installment.amount;
+      return total + Math.round(Number(amount) * 100);
+    }, 0);
+
     this.id = sale.id;
     this.saleNumber = sale.saleNumber;
     this.clientId = sale.clientId;
@@ -10,9 +20,9 @@ export class SaleDTO {
     this.financedAmount = sale.financedAmount;
     this.financingInterestRate = sale.financingInterestRate || 0;
     this.financingInterestAmount = sale.financingInterestAmount || 0;
-    this.totalFinancedAmount = (
-      Number(sale.financedAmount) + Number(sale.financingInterestAmount || 0)
-    ).toFixed(2);
+    this.totalFinancedAmount = installments.length
+      ? (scheduledTotalCents / 100).toFixed(2)
+      : (Number(sale.financedAmount) + Number(sale.financingInterestAmount || 0)).toFixed(2);
     this.installmentPlan = sale.installmentPlan;
     this.installmentAmount = sale.installmentAmount;
     this.status = sale.status;
@@ -21,7 +31,7 @@ export class SaleDTO {
     this.motorcycle = sale.motorcycle || null;
     this.seller = sale.seller || null;
     this.saleReceipt = sale.saleReceipt || null;
-    this.installments = sale.installments || [];
+    this.installments = installments;
     this.createdAt = sale.createdAt;
     this.updatedAt = sale.updatedAt;
   }
