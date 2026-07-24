@@ -31,6 +31,11 @@ input {
   font: inherit;
 }
 
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 button {
   cursor: pointer;
 }

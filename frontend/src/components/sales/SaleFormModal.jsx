@@ -167,7 +167,6 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                         placeholder="Buscar por nombre o DNI"
                         emptyMessage="No encontramos clientes"
                         required
-                        autoFocus
                       />
                     </div>
                     <div className="sale-form-field">
