@@ -49,6 +49,12 @@ export function AuthProvider({ children }) {
         || Boolean(localStorage.getItem("token"));
       localStorage.removeItem("token");
 
+      if (!hadSession) {
+        clearSession();
+        setReady(true);
+        return;
+      }
+
       try {
         const { user: currentUser } = await refreshSession();
         setUser(currentUser);
@@ -56,11 +62,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem("sessionActive", "true");
         resetSessionNotification();
       } catch {
-        if (hadSession) {
-          endSession("expired");
-        } else {
-          clearSession();
-        }
+        endSession("expired");
       } finally {
         setReady(true);
       }

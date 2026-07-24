@@ -4,11 +4,13 @@ import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const authService = new AuthService();
 const REFRESH_COOKIE = "moyano_refresh";
+const isProduction = process.env.NODE_ENV === "production";
 
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  partitioned: isProduction,
   path: "/api/auth"
 });
 
