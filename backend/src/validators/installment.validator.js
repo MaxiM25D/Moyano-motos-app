@@ -9,6 +9,11 @@ export const updateInstallmentSchema = Joi.object({
   dueDate: Joi.date().required()
 });
 
+export const updateInstallmentPlanSchema = Joi.object({
+  amount: Joi.number().precision(2).positive().required(),
+  dueDate: Joi.date().required()
+});
+
 export const payInstallmentSchema = Joi.object({
   amount: Joi.number().precision(2).positive().optional(),
   balanceAllocation: Joi.string()

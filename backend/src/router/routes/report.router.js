@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getCollectionsReport,
+  getDashboardReport,
   getDebtReport,
   getOverdueReport,
   getSalesReport
@@ -10,6 +11,7 @@ import { roleMiddleware } from "../../middlewares/role.middleware.js";
 
 const router = Router();
 
+router.get("/dashboard", authMiddleware, getDashboardReport);
 router.get("/collections", authMiddleware, roleMiddleware("ADMIN", "COLLECTOR"), getCollectionsReport);
 router.get("/installments/overdue", authMiddleware, roleMiddleware("ADMIN", "COLLECTOR"), getOverdueReport);
 router.get("/debt", authMiddleware, roleMiddleware("ADMIN"), getDebtReport);

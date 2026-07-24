@@ -129,6 +129,23 @@
   color: #69736f;
 }
 
+.login-form .remember-device {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 18px 0 0;
+  color: #59645f;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.remember-device input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #167052;
+}
+
 .login-submit {
   width: 100%;
   height: 50px;

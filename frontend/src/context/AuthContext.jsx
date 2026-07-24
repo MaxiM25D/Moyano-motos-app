@@ -1,12 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getCurrentUser } from "../services/authService.js";
+import { logoutUser, refreshSession } from "../services/authService.js";
+import { clearAccessToken, setAccessToken } from "../services/api.js";
 import {
-  getSessionEndReason,
-  getTokenExpiration,
   resetSessionNotification,
-  SESSION_END_EVENT,
-  SESSION_WARNING_MS
+  SESSION_END_EVENT
 } from "../services/sessionEvents.js";
 
 const AuthContext = createContext(null);
@@ -23,8 +21,10 @@ export function AuthProvider({ children }) {
   }, [location.pathname]);
 
   const clearSession = useCallback(() => {
+    clearAccessToken();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("sessionActive");
     setUser(null);
   }, []);
 
@@ -45,25 +45,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const restoreSession = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setReady(true);
-        return;
-      }
-
-      if (getTokenExpiration(token) <= Date.now()) {
-        endSession("expired");
-        setReady(true);
-        return;
-      }
+      const hadSession = localStorage.getItem("sessionActive") === "true"
+        || Boolean(localStorage.getItem("token"));
+      localStorage.removeItem("token");
 
       try {
-        const { user: currentUser } = await getCurrentUser();
+        const { user: currentUser } = await refreshSession();
         setUser(currentUser);
         localStorage.setItem("user", JSON.stringify(currentUser));
+        localStorage.setItem("sessionActive", "true");
+        resetSessionNotification();
       } catch {
-        clearSession();
+        if (hadSession) {
+          endSession("expired");
+        } else {
+          clearSession();
+        }
       } finally {
         setReady(true);
       }
@@ -72,43 +69,22 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, [clearSession, endSession]);
 
-  useEffect(() => {
-    if (!user) return undefined;
-
-    const token = localStorage.getItem("token");
-    const expiresAt = getTokenExpiration(token || "");
-    if (!expiresAt) {
-      endSession("expired");
-      return undefined;
-    }
-
-    const checkExpiration = () => {
-      const reason = getSessionEndReason(expiresAt);
-      if (reason) endSession(reason);
-    };
-    const warningDelay = Math.max(0, expiresAt - Date.now() - SESSION_WARNING_MS);
-    const timer = window.setTimeout(checkExpiration, warningDelay);
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") checkExpiration();
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [endSession, user]);
-
   const login = useCallback((userData, token) => {
     resetSessionNotification();
-    localStorage.setItem("token", token);
+    setAccessToken(token);
     localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("sessionActive", "true");
     setUser(userData);
   }, []);
 
-  const logout = useCallback(() => {
-    clearSession();
-  }, [clearSession]);
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser();
+    } finally {
+      clearSession();
+      navigate("/login", { replace: true });
+    }
+  }, [clearSession, navigate]);
 
   const value = useMemo(() => ({ user, login, logout }), [user, login, logout]);
 

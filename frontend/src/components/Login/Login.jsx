@@ -10,6 +10,7 @@ import "./Login.css";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,11 +29,11 @@ function Login() {
     setLoading(true);
 
     try {
-      const data = await loginUser({ email, password });
+      const data = await loginUser({ email, password, rememberDevice });
       login(data.user, data.token);
       navigate(location.state?.from || "/", { replace: true });
     } catch (requestError) {
-      setError(getApiError(requestError, "Email o contrasena incorrectos"));
+      setError(getApiError(requestError, "Email o contraseña incorrectos"));
     } finally {
       setLoading(false);
     }
@@ -79,7 +80,7 @@ function Login() {
             />
           </div>
 
-          <label htmlFor="password">Contrasena</label>
+          <label htmlFor="password">Contraseña</label>
           <div className="input-wrap">
             <FiLock aria-hidden="true" />
             <input
@@ -87,7 +88,7 @@ function Login() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Tu contrasena"
+              placeholder="Tu contraseña"
               autoComplete="current-password"
               required
             />
@@ -95,12 +96,21 @@ function Login() {
               className="password-toggle"
               type="button"
               onClick={() => setShowPassword((visible) => !visible)}
-              aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
-              title={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
+
+          <label className="remember-device">
+            <input
+              type="checkbox"
+              checked={rememberDevice}
+              onChange={(event) => setRememberDevice(event.target.checked)}
+            />
+            <span>Recordar este equipo durante 7 dias</span>
+          </label>
 
           <button className="login-submit" type="submit" disabled={loading}>
             {loading ? "Ingresando..." : "Ingresar"}

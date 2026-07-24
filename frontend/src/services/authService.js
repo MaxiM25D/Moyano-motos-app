@@ -1,4 +1,4 @@
-import api from "./api.js";
+import api, { renewSession } from "./api.js";
 
 export const loginUser = async (credentials) => {
   const response = await api.post("/auth/login", credentials);
@@ -8,4 +8,10 @@ export const loginUser = async (credentials) => {
 export const getCurrentUser = async () => {
   const response = await api.get("/auth/current");
   return response.data.data;
+};
+
+export const refreshSession = () => renewSession();
+
+export const logoutUser = async () => {
+  await api.post("/auth/logout");
 };

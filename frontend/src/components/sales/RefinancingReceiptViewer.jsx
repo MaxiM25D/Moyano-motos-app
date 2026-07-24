@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { FiPrinter, FiX } from "react-icons/fi";
 import moyanoLogo from "../../assets/moyano-logo.png";
 import { getApiError } from "../../services/api.js";
-import { markSaleReceiptPrinted } from "../../services/saleService.js";
+import { markRefinancingReceiptPrinted } from "../../services/refinancingService.js";
 import "./SaleReceiptViewer.css";
+import "./Refinancing.css";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 const shortDate = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -15,16 +16,10 @@ const dateTime = new Intl.DateTimeFormat("es-AR", {
   minute: "2-digit"
 });
 
-function SaleReceiptViewer({ sale, onClose }) {
-  const [receipt, setReceipt] = useState(sale.saleReceipt);
+function RefinancingReceiptViewer({ sale, refinancing: initialRefinancing, onClose }) {
+  const [refinancing, setRefinancing] = useState(initialRefinancing);
   const [printing, setPrinting] = useState(false);
   const [error, setError] = useState("");
-  const planSnapshot = receipt.planSnapshot;
-  const receiptInstallments = planSnapshot?.installments || sale.installments;
-  const receiptInstallmentPlan = planSnapshot?.installmentPlan || sale.installmentPlan;
-  const totalFinanced = Number(
-    planSnapshot?.totalFinancedAmount || sale.totalFinancedAmount || sale.financedAmount
-  );
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -38,8 +33,8 @@ function SaleReceiptViewer({ sale, onClose }) {
     setPrinting(true);
     setError("");
     try {
-      const updatedReceipt = await markSaleReceiptPrinted(sale.id);
-      setReceipt(updatedReceipt);
+      const updated = await markRefinancingReceiptPrinted(refinancing.id);
+      setRefinancing(updated);
       window.print();
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudo preparar la impresion"));
@@ -52,11 +47,11 @@ function SaleReceiptViewer({ sale, onClose }) {
     <div className="sale-receipt-backdrop" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget && !printing) onClose();
     }}>
-      <section className="sale-receipt-viewer" role="dialog" aria-modal="true" aria-labelledby="sale-receipt-title">
+      <section className="sale-receipt-viewer" role="dialog" aria-modal="true" aria-labelledby="refinancing-receipt-title">
         <header className="sale-receipt-viewer-header sale-receipt-screen-only">
           <div>
-            <h2 id="sale-receipt-title">Recibo de venta</h2>
-            <p>{receipt.receiptNumber}</p>
+            <h2 id="refinancing-receipt-title">Comprobante de refinanciacion</h2>
+            <p>{refinancing.receiptNumber}</p>
           </div>
           <button type="button" onClick={onClose} disabled={printing} aria-label="Cerrar" title="Cerrar"><FiX /></button>
         </header>
@@ -64,16 +59,16 @@ function SaleReceiptViewer({ sale, onClose }) {
         {error && <div className="sale-receipt-error sale-receipt-screen-only" role="alert">{error}</div>}
 
         <div className="sale-receipt-paper-wrap">
-          <article className="sale-receipt-print-sheet">
+          <article className="sale-receipt-print-sheet refinancing-receipt-sheet">
             <header className="sale-receipt-brand-header">
               <div className="sale-receipt-brand">
                 <img src={moyanoLogo} alt="Moyano Motos" />
-                <small>Comprobante de venta financiada</small>
+                <small>Acuerdo de refinanciacion</small>
               </div>
               <div className="sale-receipt-number">
-                <span>RECIBO DE VENTA</span>
-                <strong>{receipt.receiptNumber}</strong>
-                <small>{dateTime.format(new Date(receipt.createdAt))}</small>
+                <span>REFINANCIACION</span>
+                <strong>{refinancing.receiptNumber}</strong>
+                <small>{dateTime.format(new Date(refinancing.createdAt))}</small>
               </div>
             </header>
 
@@ -85,35 +80,40 @@ function SaleReceiptViewer({ sale, onClose }) {
             </section>
 
             <section className="sale-receipt-section">
-              <h3>Detalle de la venta</h3>
+              <h3>Operacion refinanciada</h3>
               <div className="sale-receipt-detail-grid">
                 <div><span>Venta</span><strong>#{sale.saleNumber}</strong></div>
-                <div><span>Fecha</span><strong>{shortDate.format(new Date(sale.saleDate))}</strong></div>
-                <div><span>Vendedor</span><strong>{sale.seller?.name || "-"}</strong></div>
                 <div><span>Moto</span><strong>{sale.motorcycle?.brand} {sale.motorcycle?.model}</strong></div>
                 <div><span>Dominio</span><strong>{sale.motorcycle?.domain || "Sin registrar"}</strong></div>
-                <div><span>Color / Año</span><strong>{sale.motorcycle?.color || "-"} / {sale.motorcycle?.year || "-"}</strong></div>
-                <div className="sale-receipt-wide"><span>Chasis</span><strong>{sale.motorcycle?.chassisNumber || "Sin registrar"}</strong></div>
-                <div className="sale-receipt-wide"><span>Motor</span><strong>{sale.motorcycle?.engineNumber || "Sin registrar"}</strong></div>
+                <div><span>Desde cuota</span><strong>N. {refinancing.startInstallmentNumber}</strong></div>
+                <div><span>Registrado por</span><strong>{refinancing.createdBy?.name || "-"}</strong></div>
+                <div><span>Fecha</span><strong>{shortDate.format(new Date(refinancing.createdAt))}</strong></div>
               </div>
             </section>
 
             <section className="sale-receipt-financing">
-              <div><span>Precio de venta</span><strong>{money.format(Number(sale.salePrice))}</strong></div>
-              <div><span>Entrega</span><strong>{money.format(Number(sale.downPayment))}</strong></div>
-              <div><span>Capital financiado</span><strong>{money.format(Number(sale.financedAmount))}</strong></div>
-              <div><span>Interes ({sale.financingInterestRate || 0}%)</span><strong>{money.format(Number(sale.financingInterestAmount || 0))}</strong></div>
-              <div className="sale-receipt-total"><span>Total en cuotas</span><strong>{money.format(totalFinanced)}</strong></div>
-              <div><span>Plan</span><strong>{receiptInstallmentPlan} cuotas</strong></div>
+              <div><span>Saldo anterior</span><strong>{money.format(Number(refinancing.previousBalance))}</strong></div>
+              <div><span>Interes ({refinancing.interestRate}%)</span><strong>{money.format(Number(refinancing.interestAmount))}</strong></div>
+              <div className="sale-receipt-total"><span>Nuevo total</span><strong>{money.format(Number(refinancing.totalAmount))}</strong></div>
+              <div><span>Nuevas cuotas</span><strong>{refinancing.installmentCount}</strong></div>
+              <div><span>Cuota base</span><strong>{money.format(Number(refinancing.installmentAmount))}</strong></div>
+              <div><span>Primer vencimiento</span><strong>{shortDate.format(new Date(refinancing.firstDueDate))}</strong></div>
             </section>
 
+            {refinancing.notes && (
+              <section className="sale-receipt-section refinancing-receipt-notes">
+                <h3>Observaciones</h3>
+                <p>{refinancing.notes}</p>
+              </section>
+            )}
+
             <section className="sale-receipt-section sale-receipt-plan">
-              <h3>Plan de cuotas</h3>
+              <h3>Nuevo plan de cuotas</h3>
               <table>
                 <thead><tr><th>Cuota</th><th>Vencimiento</th><th>Importe</th></tr></thead>
                 <tbody>
-                  {receiptInstallments.map((installment) => (
-                    <tr key={installment.id || installment.number}>
+                  {refinancing.newPlan.map((installment) => (
+                    <tr key={installment.number}>
                       <td>N. {installment.number}</td>
                       <td>{shortDate.format(new Date(installment.dueDate))}</td>
                       <td>{money.format(Number(installment.amount))}</td>
@@ -133,7 +133,7 @@ function SaleReceiptViewer({ sale, onClose }) {
         <footer className="sale-receipt-actions sale-receipt-screen-only">
           <button className="secondary-button" type="button" onClick={onClose} disabled={printing}>Cerrar</button>
           <button className="primary-button" type="button" onClick={handlePrint} disabled={printing}>
-            <FiPrinter />{printing ? "Preparando..." : "Imprimir recibo"}
+            <FiPrinter />{printing ? "Preparando..." : "Imprimir comprobante"}
           </button>
         </footer>
       </section>
@@ -141,4 +141,4 @@ function SaleReceiptViewer({ sale, onClose }) {
   );
 }
 
-export default SaleReceiptViewer;
+export default RefinancingReceiptViewer;

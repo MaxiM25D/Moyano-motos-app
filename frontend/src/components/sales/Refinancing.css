@@ -1,0 +1,42 @@
+.refinancing-backdrop { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 20px; background: rgba(8, 19, 15, 0.64); }
+.refinancing-modal { width: min(100%, 680px); max-height: calc(100vh - 40px); border-radius: 7px; background: white; box-shadow: 0 24px 70px rgba(12, 27, 21, 0.28); overflow-y: auto; }
+.refinancing-modal > header { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid #e5eae7; }
+.refinancing-modal > header h2 { margin: 0 0 4px; font-family: "Manrope", sans-serif; font-size: 18px; }
+.refinancing-modal > header p { margin: 0; color: #818b86; font-size: 12px; }
+.refinancing-modal > header button { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid #dce2df; border-radius: 5px; background: white; color: #53605a; font-size: 18px; }
+.refinancing-body { padding: 22px 20px 25px; }
+.refinancing-error { margin-bottom: 18px; padding: 10px 12px; border-left: 3px solid #c93f45; background: #fff0f0; color: #922b31; font-size: 12px; }
+.refinancing-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+.refinancing-form-grid label > span { display: block; margin-bottom: 7px; color: #47534e; font-size: 12px; font-weight: 600; }
+.refinancing-form-grid input,
+.refinancing-form-grid select,
+.refinancing-form-grid textarea { width: 100%; border: 1px solid #d7dedb; border-radius: 5px; outline: 0; background: white; color: #1d2823; font: inherit; font-size: 13px; }
+.refinancing-form-grid input,
+.refinancing-form-grid select { height: 42px; padding: 0 11px; }
+.refinancing-form-grid textarea { min-height: 74px; padding: 10px 11px; resize: vertical; }
+.refinancing-form-grid input:focus,
+.refinancing-form-grid select:focus,
+.refinancing-form-grid textarea:focus { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
+.refinancing-notes { grid-column: 1 / -1; }
+.refinancing-preview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 20px; border: 1px solid #dce3df; border-radius: 6px; background: #dce3df; overflow: hidden; }
+.refinancing-preview > div { min-width: 0; display: flex; flex-direction: column; padding: 13px; background: #f8faf9; }
+.refinancing-preview span { color: #75807b; font-size: 10px; }
+.refinancing-preview strong { margin-top: 5px; overflow: hidden; font-size: 14px; text-overflow: ellipsis; }
+.refinancing-preview .refinancing-preview-total { background: #edf6f2; }
+.refinancing-preview-total strong { color: #176b50; }
+.refinancing-warning { margin: 15px 0 0; padding-left: 10px; border-left: 3px solid #d9a23d; color: #76551d; font-size: 11px; line-height: 1.5; }
+.refinancing-modal footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid #e5eae7; background: #fafbfa; }
+.refinancing-receipt-notes p { margin: 0; padding: 10px 12px; border: 1px solid #dfe5e2; background: #f8faf9; font-size: 10px; line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .refinancing-preview { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 520px) {
+  .refinancing-backdrop { padding: 0; place-items: end center; }
+  .refinancing-modal { max-height: 96vh; border-radius: 7px 7px 0 0; }
+  .refinancing-form-grid { grid-template-columns: 1fr; }
+  .refinancing-notes { grid-column: auto; }
+  .refinancing-modal footer { position: sticky; bottom: 0; }
+  .refinancing-modal footer button { flex: 1; }
+}

@@ -1,6 +1,31 @@
 import { ReportRepository } from "../repositories/report.repository.js";
 
 const reportRepository = new ReportRepository();
+const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
+
+const getArgentinaDateParts = (value) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ARGENTINA_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(value);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day)
+  };
+};
+
+const getCurrentMonthRange = (now = new Date()) => {
+  const { year, month, day } = getArgentinaDateParts(now);
+  return {
+    from: new Date(Date.UTC(year, month - 1, 1)),
+    to: new Date(Date.UTC(year, month, 1)),
+    today: new Date(Date.UTC(year, month - 1, day))
+  };
+};
 
 const startOfDay = (date) => {
   const value = new Date(date);
@@ -21,6 +46,34 @@ const parseRange = (query) => {
 };
 
 export class ReportService {
+  async getDashboard() {
+    const range = getCurrentMonthRange();
+    const [paid, pending, overdue, upcomingInstallments, attentionRequired] = await Promise.all(
+      reportRepository.getDashboard(range)
+    );
+
+    return {
+      period: {
+        from: range.from,
+        to: range.to
+      },
+      paid: {
+        amount: paid._sum.amount || 0,
+        count: paid._count.id
+      },
+      pending: {
+        amount: pending._sum.amount || 0,
+        count: pending._count.id
+      },
+      overdue: {
+        amount: overdue._sum.amount || 0,
+        count: overdue._count.id
+      },
+      upcomingInstallments,
+      attentionRequired
+    };
+  }
+
   async getCollections(query) {
     const { from, to } = parseRange(query);
     const [payments, totals] = await Promise.all([

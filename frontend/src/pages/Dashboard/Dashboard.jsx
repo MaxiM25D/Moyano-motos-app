@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiArrowRight, FiCalendar, FiCreditCard, FiFileText, FiRefreshCw } from "react-icons/fi";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FiAlertCircle,
+  FiArrowRight,
+  FiBell,
+  FiCalendar,
+  FiCheckCircle,
+  FiCreditCard,
+  FiRefreshCw
+} from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
@@ -12,15 +20,43 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0
 });
 
-const dateFormatter = new Intl.DateTimeFormat("es-AR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric"
+const monthFormatter = new Intl.DateTimeFormat("es-AR", {
+  month: "short"
 });
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+const startOfDay = (value) => {
+  const result = new Date(value);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const daysUntilDue = (installment) => Math.round(
+  (startOfDay(installment.dueDate) - startOfDay(new Date())) / DAY_IN_MS
+);
+
+const getDueAlert = (installment) => {
+  const days = daysUntilDue(installment);
+  if (days === 0) return { className: "today", label: "Cobrar hoy" };
+  if (days === 1) return { className: "tomorrow", label: "Cobrar mañana" };
+  return {
+    className: days <= 7 ? "soon" : "scheduled",
+    label: `Faltan ${days} dias`
+  };
+};
+
+const emptyDashboard = {
+  paid: { count: 0, amount: 0 },
+  pending: { count: 0, amount: 0 },
+  overdue: { count: 0, amount: 0 },
+  upcomingInstallments: [],
+  attentionRequired: []
+};
 
 function Dashboard() {
   const { user } = useAuth();
-  const [data, setData] = useState({ sales: [], pending: [], overdue: [] });
+  const [data, setData] = useState(emptyDashboard);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,18 +77,10 @@ function Dashboard() {
     loadDashboard();
   }, [loadDashboard]);
 
-  const metrics = useMemo(() => {
-    const pendingAmount = data.pending.reduce((total, item) => total + Number(item.amount), 0);
-    const overdueAmount = data.overdue.reduce((total, item) => total + Number(item.amount), 0);
-    const activeSales = data.sales.filter((sale) => sale.status === "ACTIVE").length;
-
-    return { pendingAmount, overdueAmount, activeSales };
-  }, [data]);
-
-  const upcomingInstallments = data.pending
-    .filter((item) => !data.overdue.some((overdue) => overdue.id === item.id))
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 5);
+  const monthLabel = new Intl.DateTimeFormat("es-AR", {
+    month: "long",
+    year: "numeric"
+  }).format(new Date());
 
   return (
     <section className="dashboard">
@@ -60,7 +88,7 @@ function Dashboard() {
         <div>
           <p>{new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}</p>
           <h1>Hola, {user.name.split(" ")[0]}</h1>
-          <span>Este es el estado actual de las cobranzas.</span>
+          <span>Resumen de cobranzas de {monthLabel}.</span>
         </div>
         <button className="refresh-button" onClick={loadDashboard} disabled={loading} title="Actualizar datos">
           <FiRefreshCw className={loading ? "is-spinning" : ""} />
@@ -77,40 +105,79 @@ function Dashboard() {
       )}
 
       <div className="metrics-grid" aria-busy={loading}>
-        <article className="metric-card">
-          <span className="metric-icon green"><FiFileText /></span>
-          <div><p>Ventas activas</p><strong>{loading ? "--" : metrics.activeSales}</strong><small>{data.sales.length} ventas registradas</small></div>
+        <article className="metric-card paid-card">
+          <span className="metric-icon green"><FiCheckCircle /></span>
+          <div className="metric-content">
+            <p>Cuotas pagadas este mes</p>
+            <div className="metric-count">
+              <strong>{loading ? "--" : data.paid.count}</strong>
+              <span>cuotas cobradas</span>
+            </div>
+            <div className="metric-amount">
+              <span>Monto ingresado</span>
+              <b>{loading ? "--" : money.format(Number(data.paid.amount))}</b>
+            </div>
+          </div>
         </article>
-        <article className="metric-card">
+
+        <article className="metric-card pending-card">
           <span className="metric-icon blue"><FiCreditCard /></span>
-          <div><p>Saldo pendiente</p><strong>{loading ? "--" : money.format(metrics.pendingAmount)}</strong><small>{data.pending.length} cuotas pendientes</small></div>
+          <div className="metric-content">
+            <p>Cuotas pendientes del mes</p>
+            <div className="metric-count">
+              <strong>{loading ? "--" : data.pending.count}</strong>
+              <span>por cobrar</span>
+            </div>
+            <div className="metric-amount">
+              <span>Monto esperado</span>
+              <b>{loading ? "--" : money.format(Number(data.pending.amount))}</b>
+            </div>
+          </div>
         </article>
+
         <article className="metric-card overdue-card">
           <span className="metric-icon red"><FiAlertCircle /></span>
-          <div><p>Cuotas vencidas</p><strong>{loading ? "--" : data.overdue.length}</strong><small>{money.format(metrics.overdueAmount)} sin cobrar</small></div>
+          <div className="metric-content">
+            <p>Cuotas vencidas este mes</p>
+            <div className="metric-count">
+              <strong>{loading ? "--" : data.overdue.count}</strong>
+              <span>cuotas atrasadas</span>
+            </div>
+            <div className="metric-amount overdue">
+              <span>Saldo adeudado</span>
+              <b>{loading ? "--" : money.format(Number(data.overdue.amount))}</b>
+            </div>
+          </div>
         </article>
       </div>
 
       <div className="dashboard-grid">
         <article className="data-panel">
           <header className="panel-header">
-            <div><h2>Proximos vencimientos</h2><p>Cuotas pendientes mas cercanas</p></div>
+            <div><h2>Proximos vencimientos</h2><p>Prioridad de cobro por fecha</p></div>
             <Link className="text-button" to="/cuotas">Ver todas <FiArrowRight /></Link>
           </header>
           {loading ? (
             <div className="table-loading"><span /><span /><span /></div>
-          ) : upcomingInstallments.length ? (
+          ) : data.upcomingInstallments.length ? (
             <div className="installment-list">
-              {upcomingInstallments.map((installment) => (
-                <div className="installment-row" key={installment.id}>
-                  <span className="date-box"><strong>{new Date(installment.dueDate).getDate()}</strong><small>{dateFormatter.format(new Date(installment.dueDate)).split(" ")[1]}</small></span>
-                  <div className="installment-info">
-                    <strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong>
-                    <span>Cuota {installment.number} · {installment.sale?.motorcycle ? `${installment.sale.motorcycle.brand} ${installment.sale.motorcycle.model}` : "Moto financiada"}</span>
+              {data.upcomingInstallments.map((installment) => {
+                const dueAlert = getDueAlert(installment);
+                return (
+                  <div className={`installment-row due-${dueAlert.className}`} key={installment.id}>
+                    <span className="date-box">
+                      <strong>{new Date(installment.dueDate).getDate()}</strong>
+                      <small>{monthFormatter.format(new Date(installment.dueDate)).replace(".", "")}</small>
+                    </span>
+                    <div className="installment-info">
+                      <strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong>
+                      <span>Cuota {installment.number} - {installment.sale?.motorcycle ? `${installment.sale.motorcycle.brand} ${installment.sale.motorcycle.model}` : "Moto financiada"}</span>
+                      <small className={`due-alert ${dueAlert.className}`}><FiBell />{dueAlert.label}</small>
+                    </div>
+                    <strong className="installment-amount">{money.format(Number(installment.amount))}</strong>
                   </div>
-                  <strong className="installment-amount">{money.format(Number(installment.amount))}</strong>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="empty-state"><FiCalendar /><strong>Sin vencimientos proximos</strong><span>No hay cuotas pendientes para mostrar.</span></div>
@@ -119,17 +186,20 @@ function Dashboard() {
 
         <article className="data-panel overdue-panel">
           <header className="panel-header">
-            <div><h2>Atencion requerida</h2><p>Cuotas que ya vencieron</p></div>
+            <div><h2>Atencion requerida</h2><p>Cuotas vencidas durante el mes actual</p></div>
           </header>
           {loading ? (
             <div className="table-loading"><span /><span /><span /></div>
-          ) : data.overdue.length ? (
+          ) : data.attentionRequired.length ? (
             <div className="overdue-list">
-              {data.overdue.slice(0, 5).map((installment) => {
-                const days = Math.max(1, Math.floor((Date.now() - new Date(installment.dueDate)) / 86400000));
+              {data.attentionRequired.map((installment) => {
+                const days = Math.max(1, Math.abs(daysUntilDue(installment)));
                 return (
                   <div className="overdue-row" key={installment.id}>
-                    <div><strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong><span>{days} {days === 1 ? "dia" : "dias"} de atraso</span></div>
+                    <div>
+                      <strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong>
+                      <span>{days} {days === 1 ? "dia" : "dias"} de atraso</span>
+                    </div>
                     <strong>{money.format(Number(installment.amount))}</strong>
                   </div>
                 );

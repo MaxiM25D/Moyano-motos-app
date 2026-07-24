@@ -7,7 +7,8 @@ import {
   getOverdueInstallments,
   getPendingInstallments,
   payInstallment,
-  updateInstallment
+  updateInstallment,
+  updateInstallmentPlan
 } from "../../controllers/installment.controller.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
@@ -15,6 +16,7 @@ import { roleMiddleware } from "../../middlewares/role.middleware.js";
 import {
   createInstallmentSchema,
   payInstallmentSchema,
+  updateInstallmentPlanSchema,
   updateInstallmentSchema
 } from "../../validators/installment.validator.js";
 
@@ -30,6 +32,13 @@ router.post(
   roleMiddleware("ADMIN"),
   validate(createInstallmentSchema),
   createInstallment
+);
+router.patch(
+  "/:id/plan",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  validate(updateInstallmentPlanSchema),
+  updateInstallmentPlan
 );
 router.patch(
   "/:id",

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { FiSave, FiX } from "react-icons/fi";
 import { getApiError } from "../../services/api.js";
-import { createInstallment, updateInstallment } from "../../services/installmentService.js";
+import {
+  createInstallment,
+  updateInstallment,
+  updateInstallmentPlan
+} from "../../services/installmentService.js";
 
 const toDateInput = (value) => {
   const date = new Date(value);
@@ -29,7 +33,7 @@ const getNextDueDate = (sale) => {
   return toDateInput(nextDate);
 };
 
-function InstallmentFormModal({ installment = null, sale = null, onClose, onSaved }) {
+function InstallmentFormModal({ installment = null, sale = null, editPlan = false, onClose, onSaved }) {
   const isCreating = !installment;
   const currentSale = sale || installment.sale;
   const latestInstallment = currentSale.installments?.at(-1);
@@ -54,12 +58,14 @@ function InstallmentFormModal({ installment = null, sale = null, onClose, onSave
     setSaving(true);
 
     try {
-      const installmentData = isCreating
+      const installmentData = isCreating || editPlan
         ? { amount: Number(form.amount), dueDate: form.dueDate }
         : { dueDate: form.dueDate };
       const savedInstallment = isCreating
         ? await createInstallment(currentSale.id, installmentData)
-        : await updateInstallment(installment.id, installmentData);
+        : editPlan
+          ? await updateInstallmentPlan(installment.id, installmentData)
+          : await updateInstallment(installment.id, installmentData);
       onSaved(savedInstallment);
     } catch (requestError) {
       setError(getApiError(requestError, isCreating ? "No se pudo agregar la cuota" : "No se pudo actualizar la cuota"));
@@ -75,7 +81,9 @@ function InstallmentFormModal({ installment = null, sale = null, onClose, onSave
       <section className="installment-form-modal" role="dialog" aria-modal="true" aria-labelledby="installment-form-title">
         <header>
           <div>
-            <h2 id="installment-form-title">{isCreating ? "Agregar cuota" : `Editar cuota ${installment.number}`}</h2>
+            <h2 id="installment-form-title">
+              {isCreating ? "Agregar cuota" : editPlan ? `Editar plan desde cuota ${installment.number}` : `Editar cuota ${installment.number}`}
+            </h2>
             <p>{currentSale.client?.name} - Venta #{currentSale.saleNumber || currentSale.id}</p>
           </div>
           <button type="button" onClick={onClose} disabled={saving} aria-label="Cerrar" title="Cerrar"><FiX /></button>
@@ -84,8 +92,8 @@ function InstallmentFormModal({ installment = null, sale = null, onClose, onSave
         <form onSubmit={handleSubmit}>
           <div className="installment-form-body">
             {error && <div className="installment-form-error" role="alert">{error}</div>}
-            <div className={`installment-form-grid${isCreating ? "" : " single"}`}>
-              {isCreating && (
+            <div className={`installment-form-grid${isCreating || editPlan ? "" : " single"}`}>
+              {(isCreating || editPlan) && (
                 <label>
                   <span>Importe *</span>
                   <input type="number" min="0.01" step="0.01" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} required autoFocus />
@@ -93,15 +101,23 @@ function InstallmentFormModal({ installment = null, sale = null, onClose, onSave
               )}
               <label>
                 <span>Vencimiento *</span>
-                <input type="date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} required autoFocus={!isCreating} />
+                <input type="date" value={form.dueDate} onChange={(event) => setForm((current) => ({ ...current, dueDate: event.target.value }))} required autoFocus={!isCreating && !editPlan} />
               </label>
             </div>
-            <p className="installment-form-hint">{isCreating ? `Se agregara como cuota ${currentSale.installments.length + 1} al final del plan.` : "La nueva fecha se aplicara a esta cuota y reprogramara mensualmente todas las siguientes. Las cuotas pagadas permanecen protegidas."}</p>
+            <p className="installment-form-hint">
+              {isCreating
+                ? `Se agregara como cuota ${currentSale.installments.length + 1} al final del plan.`
+                : editPlan
+                  ? "El nuevo importe y vencimiento se aplicaran a esta cuota y a todas las siguientes pendientes. El total del plan se recalculara y las cuotas pagadas permaneceran protegidas."
+                  : "La nueva fecha se aplicara a esta cuota y reprogramara mensualmente todas las siguientes. Las cuotas pagadas permanecen protegidas."}
+            </p>
           </div>
 
           <footer>
             <button className="secondary-button" type="button" onClick={onClose} disabled={saving}>Cancelar</button>
-            <button className="primary-button" type="submit" disabled={saving}><FiSave />{saving ? "Guardando..." : isCreating ? "Agregar cuota" : "Guardar cambios"}</button>
+            <button className="primary-button" type="submit" disabled={saving}>
+              <FiSave />{saving ? "Guardando..." : isCreating ? "Agregar cuota" : editPlan ? "Actualizar plan" : "Guardar cambios"}
+            </button>
           </footer>
         </form>
       </section>

@@ -70,7 +70,7 @@
 }
 
 .metric-card {
-  min-height: 132px;
+  min-height: 158px;
   display: flex;
   align-items: flex-start;
   gap: 15px;
@@ -80,6 +80,8 @@
   background: white;
 }
 
+.metric-card.paid-card { border-top: 3px solid #2b8a68; padding-top: 21px; }
+.metric-card.pending-card { border-top: 3px solid #4e8097; padding-top: 21px; }
 .metric-card.overdue-card { border-top: 3px solid #cc4a50; padding-top: 21px; }
 
 .metric-icon {
@@ -96,9 +98,15 @@
 .metric-icon.blue { background: #e7f0f5; color: #316b85; }
 .metric-icon.red { background: #fae9e9; color: #be3940; }
 
-.metric-card p { margin: 0 0 7px; color: #707b76; font-size: 12px; font-weight: 600; }
-.metric-card strong { display: block; margin-bottom: 4px; font-family: "Manrope", sans-serif; font-size: 23px; }
-.metric-card small { color: #8b9490; font-size: 11px; }
+.metric-content { min-width: 0; flex: 1; }
+.metric-card p { margin: 0 0 6px; color: #707b76; font-size: 12px; font-weight: 600; }
+.metric-count { display: flex; align-items: baseline; gap: 7px; }
+.metric-count strong { font-family: "Manrope", sans-serif; font-size: 25px; }
+.metric-count span { color: #8b9490; font-size: 10px; }
+.metric-amount { display: flex; flex-direction: column; gap: 3px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e7ece9; }
+.metric-amount span { color: #7c8782; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+.metric-amount b { overflow: hidden; color: #176b50; font-family: "Manrope", sans-serif; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.metric-amount.overdue b { color: #9b3035; }
 
 .dashboard-grid {
   display: grid;
@@ -140,6 +148,9 @@
 
 .installment-row:last-child,
 .overdue-row:last-child { border-bottom: 0; }
+.installment-row.due-today { box-shadow: inset 3px 0 #c93f45; background: #fffafa; }
+.installment-row.due-tomorrow { box-shadow: inset 3px 0 #d98424; background: #fffaf3; }
+.installment-row.due-soon { box-shadow: inset 3px 0 #e1aa45; }
 
 .date-box {
   width: 42px;
@@ -160,6 +171,12 @@
 .installment-info { min-width: 0; flex: 1; display: flex; flex-direction: column; }
 .installment-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .installment-info span { margin-top: 4px; overflow: hidden; color: #7c8782; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.installment-info .due-alert { width: fit-content; display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+.due-alert svg { flex: 0 0 auto; font-size: 10px; }
+.due-alert.today { background: #fae9e9; color: #aa3036; }
+.due-alert.tomorrow,
+.due-alert.soon { background: #fff1d7; color: #8c5a11; }
+.due-alert.scheduled { background: #e7f0f5; color: #316b85; }
 .installment-amount { font-size: 13px; white-space: nowrap; }
 
 .overdue-row { justify-content: space-between; }

@@ -90,6 +90,38 @@ export class InstallmentService {
     return installmentRepository.rescheduleInstallments(installment, dueDate);
   }
 
+  async updateInstallmentPlan(id, data) {
+    const installmentId = validateId(id, "ID de cuota");
+    const installment = await installmentRepository.getInstallmentById(installmentId);
+
+    if (!installment) throw new HttpError("Cuota no encontrada", 404);
+    if (installment.status !== "PENDING") {
+      throw new HttpError("Solo se pueden modificar cuotas pendientes", 409);
+    }
+
+    const sale = await installmentRepository.getSaleWithInstallments(installment.saleId);
+    const installmentIndex = sale.installments.findIndex((item) => item.id === installmentId);
+    const previousInstallment = sale.installments[installmentIndex - 1];
+    const dueDate = toDueDate(data.dueDate);
+
+    if (previousInstallment && dueDate <= previousInstallment.dueDate) {
+      throw new HttpError("El vencimiento debe ser posterior al de la cuota anterior", 400);
+    }
+
+    const paidInstallmentsAfter = await installmentRepository.countPaidInstallmentsAfter(
+      installment.saleId,
+      installment.number
+    );
+    if (paidInstallmentsAfter > 0) {
+      throw new HttpError("No se puede modificar el plan porque hay cuotas posteriores pagadas", 409);
+    }
+
+    return installmentRepository.updateInstallmentPlan(installment, {
+      amount: toMoney(toCents(data.amount)),
+      dueDate
+    });
+  }
+
   async deleteInstallment(id) {
     const installmentId = validateId(id, "ID de cuota");
     const installment = await installmentRepository.getInstallmentById(installmentId);

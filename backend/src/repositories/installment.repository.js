@@ -135,6 +135,41 @@ export class InstallmentRepository {
     });
   }
 
+  updateInstallmentPlan(installment, data) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(installment.saleId)})`;
+
+      const installmentsToUpdate = await tx.installment.findMany({
+        where: {
+          saleId: installment.saleId,
+          number: { gte: installment.number },
+          status: "PENDING"
+        },
+        orderBy: { number: "asc" }
+      });
+
+      for (const item of installmentsToUpdate) {
+        await tx.installment.update({
+          where: { id: item.id },
+          data: {
+            amount: data.amount,
+            dueDate: addCalendarMonths(data.dueDate, item.number - installment.number)
+          }
+        });
+      }
+
+      await tx.sale.update({
+        where: { id: installment.saleId },
+        data: { installmentAmount: data.amount }
+      });
+
+      return tx.installment.findUnique({
+        where: { id: installment.id },
+        include: installmentInclude
+      });
+    });
+  }
+
   createInstallment(saleId, data) {
     return prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(saleId)})`;

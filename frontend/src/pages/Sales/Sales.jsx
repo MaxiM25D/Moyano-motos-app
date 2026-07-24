@@ -39,6 +39,7 @@ function Sales() {
   const [notice, setNotice] = useState("");
   const canCreate = ["ADMIN", "SELLER"].includes(user.role);
   const canDelete = user.role === "ADMIN";
+  const canCollect = ["ADMIN", "COLLECTOR"].includes(user.role);
 
   const loadSales = useCallback(async () => {
     setLoading(true);
@@ -135,7 +136,7 @@ function Sales() {
           <div className="sales-loading"><span /><span /><span /><span /></div>
         ) : filteredSales.length ? (
           <table className="sales-table">
-            <thead><tr><th>Venta</th><th>Cliente</th><th>Moto</th><th>Fecha</th><th>Plan</th><th>Financiado</th><th>Estado</th><th><span className="sr-only">Acciones</span></th></tr></thead>
+            <thead><tr><th>Venta</th><th>Cliente</th><th>Moto</th><th>Fecha</th><th>Plan</th><th>Saldo pendiente</th><th>Estado</th><th><span className="sr-only">Acciones</span></th></tr></thead>
             <tbody>
               {filteredSales.map((sale) => {
                 const paid = sale.installments.filter((item) => item.status === "PAID").length;
@@ -146,9 +147,11 @@ function Sales() {
                     <td data-label="Moto"><div className="sale-motorcycle"><strong>{sale.motorcycle?.brand} {sale.motorcycle?.model}</strong><small>{sale.motorcycle?.domain || "Sin dominio"}</small></div></td>
                     <td data-label="Fecha">{date.format(new Date(sale.saleDate))}</td>
                     <td data-label="Plan"><strong>{sale.installmentPlan}</strong> cuotas<small className="paid-progress">{paid} pagadas</small></td>
-                    <td data-label="Financiado" className="sale-money">
-                      {money.format(Number(sale.totalFinancedAmount || sale.financedAmount))}
-                      {Number(sale.financingInterestRate || 0) > 0 && <small>Incluye {sale.financingInterestRate}% de interes</small>}
+                    <td data-label="Saldo pendiente" className="sale-money">
+                      {money.format(Number(sale.outstandingBalance ?? sale.totalFinancedAmount ?? sale.financedAmount))}
+                      {sale.refinancings?.length > 0
+                        ? <small>Plan refinanciado</small>
+                        : Number(sale.financingInterestRate || 0) > 0 && <small>Incluye {sale.financingInterestRate}% de interes</small>}
                     </td>
                     <td data-label="Estado"><span className={`sale-status ${sale.status.toLowerCase()}`}>{statusLabels[sale.status]}</span></td>
                     <td className="sale-action-cell"><div className="sale-row-actions"><button onClick={() => setSelectedSale(sale)} aria-label={`Ver venta ${sale.saleNumber}`} title="Ver detalle"><FiEye /></button>{canDelete && <button className="sale-delete-button" onClick={() => setSaleToDelete(sale)} aria-label={`Eliminar venta ${sale.saleNumber}`} title="Eliminar venta"><FiTrash2 /></button>}</div></td>
@@ -163,7 +166,7 @@ function Sales() {
       </div>
 
       {createOpen && <SaleFormModal soldMotorcycleIds={soldMotorcycleIds} onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
-      {selectedSale && <SaleDetailModal sale={selectedSale} canManagePlan={canDelete} onPlanChanged={handlePlanChanged} onClose={() => setSelectedSale(null)} />}
+      {selectedSale && <SaleDetailModal sale={selectedSale} canManagePlan={canDelete} canCollect={canCollect} onPlanChanged={handlePlanChanged} onClose={() => setSelectedSale(null)} />}
       {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.saleNumber}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
     </section>
   );

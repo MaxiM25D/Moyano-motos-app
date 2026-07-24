@@ -7,6 +7,14 @@ const saleInclude = {
     select: { name: true, email: true }
   },
   saleReceipt: true,
+  refinancings: {
+    include: {
+      createdBy: {
+        select: { name: true, email: true }
+      }
+    },
+    orderBy: { sequence: "desc" }
+  },
   installments: {
     include: {
       payment: {
@@ -73,7 +81,19 @@ export class SaleRepository {
           saleNumber,
           saleReceipt: {
             create: {
-              receiptNumber: `VTA-${saleYear}-${String(saleNumber).padStart(8, "0")}`
+              receiptNumber: `VTA-${saleYear}-${String(saleNumber).padStart(8, "0")}`,
+              planSnapshot: {
+                installmentPlan: installmentsData.length,
+                totalFinancedAmount: installmentsData
+                  .reduce((total, installment) => total + Number(installment.amount), 0)
+                  .toFixed(2),
+                installments: installmentsData.map((installment) => ({
+                  number: installment.number,
+                  amount: installment.amount,
+                  dueDate: installment.dueDate.toISOString(),
+                  status: "PENDING"
+                }))
+              }
             }
           },
           installments: {
@@ -89,6 +109,7 @@ export class SaleRepository {
     const saleId = Number(id);
 
     return prisma.$transaction(async (tx) => {
+      await tx.refinancing.deleteMany({ where: { saleId } });
       await tx.saleReceipt.deleteMany({ where: { saleId } });
       await tx.receipt.deleteMany({
         where: {

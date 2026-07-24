@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import environment, { validateEnv } from "../config/env.config.js";
 import { connectAuto } from "../config/db/connect.config.js";
@@ -12,13 +13,14 @@ let server;
 app.disable("x-powered-by");
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 export const startServer = async () => {
   const allowedOrigins = environment.CORS_ORIGIN
     ? environment.CORS_ORIGIN.split(",").map((origin) => origin.trim())
     : true;
 
-  app.use(cors({ origin: allowedOrigins }));
+  app.use(cors({ origin: allowedOrigins, credentials: true }));
 
   validateEnv();
   await connectAuto();

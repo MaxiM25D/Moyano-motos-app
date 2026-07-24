@@ -70,6 +70,17 @@ export const updateInstallment = async (req, res) => {
   }
 };
 
+export const updateInstallmentPlan = async (req, res) => {
+  try {
+    const installment = await installmentService.updateInstallmentPlan(req.params.id, req.body);
+    return sendSuccess(res, "Plan de cuotas actualizado", {
+      installment: new InstallmentDTO(installment)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 export const deleteInstallment = async (req, res) => {
   try {
     const installment = await installmentService.deleteInstallment(req.params.id);

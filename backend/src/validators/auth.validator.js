@@ -2,5 +2,6 @@ import Joi from "joi";
 
 export const loginSchema = Joi.object({
   email: Joi.string().trim().email().required(),
-  password: Joi.string().required()
+  password: Joi.string().required(),
+  rememberDevice: Joi.boolean().default(false)
 });

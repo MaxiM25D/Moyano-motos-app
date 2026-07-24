@@ -47,7 +47,7 @@ const getUrgency = (installment) => {
     return { className: "overdue", label: `Vencida hace ${elapsed} ${elapsed === 1 ? "dia" : "dias"}` };
   }
   if (days === 0) return { className: "today", label: "Vence hoy" };
-  if (days === 1) return { className: "soon", label: "Vence manana" };
+  if (days === 1) return { className: "soon", label: "Vence mañana" };
   if (days <= 7) return { className: "soon", label: `Vence en ${days} dias` };
   if (days <= 30) return { className: "upcoming", label: `Vence en ${days} dias` };
   return { className: "", label: "" };

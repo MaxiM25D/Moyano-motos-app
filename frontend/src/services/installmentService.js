@@ -20,6 +20,11 @@ export const updateInstallment = async (id, installment) => {
   return response.data.data.installment;
 };
 
+export const updateInstallmentPlan = async (id, installment) => {
+  const response = await api.patch(`/installments/${id}/plan`, installment);
+  return response.data.data.installment;
+};
+
 export const deleteInstallment = async (id) => {
   const response = await api.delete(`/installments/${id}`);
   return response.data.data.installment;

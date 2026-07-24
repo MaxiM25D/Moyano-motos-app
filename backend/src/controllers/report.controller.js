@@ -3,6 +3,15 @@ import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const reportService = new ReportService();
 
+export const getDashboardReport = async (req, res) => {
+  try {
+    const report = await reportService.getDashboard();
+    return sendSuccess(res, "Resumen mensual obtenido", { report });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 export const getCollectionsReport = async (req, res) => {
   try {
     const report = await reportService.getCollections(req.query);
