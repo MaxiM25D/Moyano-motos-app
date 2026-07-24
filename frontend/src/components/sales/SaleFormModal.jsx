@@ -5,6 +5,7 @@ import { getClients } from "../../services/clientService.js";
 import { getMotorcycles } from "../../services/motorcycleService.js";
 import { createSale } from "../../services/saleService.js";
 import CurrencyInput from "../common/CurrencyInput.jsx";
+import SearchableSelect from "../common/SearchableSelect.jsx";
 
 const installmentOptions = Array.from({ length: 60 }, (_, index) => index + 1);
 
@@ -81,6 +82,22 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
     return { financed, interest, totalFinanced, installment };
   }, [form.downPayment, form.financingInterestRate, form.installmentPlan, form.salePrice]);
 
+  const clientOptions = useMemo(() => clients.map((client) => ({
+    value: client.id,
+    label: client.name,
+    detail: `DNI ${client.dni}`,
+    selectionLabel: `${client.name} - DNI ${client.dni}`,
+    searchText: `${client.name} ${client.dni}`
+  })), [clients]);
+
+  const motorcycleOptions = useMemo(() => motorcycles.map((motorcycle) => ({
+    value: motorcycle.id,
+    label: `${motorcycle.brand} ${motorcycle.model}`,
+    detail: motorcycle.domain || "Sin dominio",
+    selectionLabel: `${motorcycle.brand} ${motorcycle.model}${motorcycle.domain ? ` - ${motorcycle.domain}` : ""}`,
+    searchText: `${motorcycle.brand} ${motorcycle.model} ${motorcycle.domain || ""}`
+  })), [motorcycles]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => {
@@ -139,21 +156,34 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                 <div className="sale-form-section">
                   <h3>Operacion</h3>
                   <div className="sale-form-grid">
-                    <label>
+                    <div className="sale-form-field">
                       <span>Cliente *</span>
-                      <select name="clientId" value={form.clientId} onChange={handleChange} required autoFocus>
-                        <option value="">Seleccionar cliente</option>
-                        {clients.map((client) => <option key={client.id} value={client.id}>{client.name} - DNI {client.dni}</option>)}
-                      </select>
-                    </label>
-                    <label>
+                      <SearchableSelect
+                        name="clientId"
+                        value={form.clientId}
+                        options={clientOptions}
+                        onValueChange={(value) => setForm((current) => ({ ...current, clientId: value }))}
+                        ariaLabel="Buscar y seleccionar cliente"
+                        placeholder="Buscar por nombre o DNI"
+                        emptyMessage="No encontramos clientes"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                    <div className="sale-form-field">
                       <span>Moto disponible *</span>
-                      <select name="motorcycleId" value={form.motorcycleId} onChange={handleChange} required>
-                        <option value="">Seleccionar moto</option>
-                        {motorcycles.map((moto) => <option key={moto.id} value={moto.id}>{moto.brand} {moto.model}{moto.domain ? ` - ${moto.domain}` : ""}</option>)}
-                      </select>
+                      <SearchableSelect
+                        name="motorcycleId"
+                        value={form.motorcycleId}
+                        options={motorcycleOptions}
+                        onValueChange={(value) => setForm((current) => ({ ...current, motorcycleId: value }))}
+                        ariaLabel="Buscar y seleccionar moto disponible"
+                        placeholder="Buscar marca, modelo o dominio"
+                        emptyMessage={motorcycles.length ? "No encontramos motos" : "No hay motos disponibles"}
+                        required
+                      />
                       {!motorcycles.length && <small>No hay motos disponibles para vender.</small>}
-                    </label>
+                    </div>
                     <label>
                       <span>Fecha de venta *</span>
                       <input type="date" name="saleDate" value={form.saleDate} onChange={handleChange} required />

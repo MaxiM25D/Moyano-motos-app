@@ -1,0 +1,98 @@
+.searchable-select {
+  position: relative;
+}
+
+.searchable-select > input[type="text"] {
+  padding-right: 38px;
+  padding-left: 34px;
+}
+
+.searchable-select-search {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 11px;
+  color: #7c8782;
+  font-size: 15px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.searchable-select-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 36px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #64706b;
+  font-size: 17px;
+}
+
+.searchable-select-toggle svg {
+  transition: transform 150ms ease;
+}
+
+.searchable-select.is-open .searchable-select-toggle svg {
+  transform: rotate(180deg);
+}
+
+.searchable-select-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  max-height: 230px;
+  padding: 5px;
+  border: 1px solid #d5ddd9;
+  border-radius: 5px;
+  background: white;
+  box-shadow: 0 12px 28px rgba(20, 38, 31, 0.14);
+  overflow-y: auto;
+}
+
+.searchable-select-menu button {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 3px;
+  background: white;
+  color: #24312b;
+  text-align: left;
+}
+
+.searchable-select-menu button:hover,
+.searchable-select-menu button.is-active {
+  background: #edf5f1;
+}
+
+.searchable-select-menu button[aria-selected="true"] {
+  box-shadow: inset 3px 0 #177556;
+}
+
+.searchable-select-menu strong {
+  font-size: 12px;
+}
+
+.searchable-select-menu small {
+  margin-top: 3px;
+  color: #7d8782;
+  font-size: 10px;
+}
+
+.searchable-select-menu p {
+  margin: 0;
+  padding: 13px 10px;
+  color: #7d8782;
+  font-size: 11px;
+  text-align: center;
+}

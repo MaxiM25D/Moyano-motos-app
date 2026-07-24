@@ -69,11 +69,11 @@
 .sale-form-section + .sale-form-section { margin-top: 25px; padding-top: 22px; border-top: 1px solid #e7ebe9; }
 .sale-form-section h3 { margin: 0 0 15px; font-family: "Manrope", sans-serif; font-size: 13px; }
 .sale-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
-.sale-form-grid label { min-width: 0; }
-.sale-form-grid label > span { display: block; margin-bottom: 7px; color: #47534e; font-size: 12px; font-weight: 600; }
+.sale-form-grid label, .sale-form-field { min-width: 0; }
+.sale-form-grid label > span, .sale-form-field > span { display: block; margin-bottom: 7px; color: #47534e; font-size: 12px; font-weight: 600; }
 .sale-form-grid input, .sale-form-grid select { width: 100%; height: 42px; padding: 0 11px; border: 1px solid #d7dedb; border-radius: 5px; outline: 0; background: white; color: #1d2823; font: inherit; font-size: 13px; }
 .sale-form-grid input:focus, .sale-form-grid select:focus { border-color: #8a5a16; box-shadow: 0 0 0 3px rgba(138, 90, 22, 0.08); }
-.sale-form-grid label small { display: block; margin-top: 5px; color: #a13b40; font-size: 10px; }
+.sale-form-grid label > small, .sale-form-field > small { display: block; margin-top: 5px; color: #a13b40; font-size: 10px; }
 .financing-preview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 22px; border: 1px solid #dce3df; border-radius: 6px; background: #dce3df; overflow: hidden; }
 .financing-preview > div { min-width: 0; display: flex; flex-direction: column; padding: 15px 17px; background: #f7f9f8; }
 .financing-preview span { color: #75807b; font-size: 11px; }
