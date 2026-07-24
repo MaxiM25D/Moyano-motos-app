@@ -6,6 +6,7 @@ import {
   updateInstallment,
   updateInstallmentPlan
 } from "../../services/installmentService.js";
+import CurrencyInput from "../common/CurrencyInput.jsx";
 
 const toDateInput = (value) => {
   const date = new Date(value);
@@ -96,7 +97,7 @@ function InstallmentFormModal({ installment = null, sale = null, editPlan = fals
               {(isCreating || editPlan) && (
                 <label>
                   <span>Importe *</span>
-                  <input type="number" min="0.01" step="0.01" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} required autoFocus />
+                  <CurrencyInput value={form.amount} onValueChange={(value) => setForm((current) => ({ ...current, amount: value }))} min="0.01" required autoFocus />
                 </label>
               )}
               <label>

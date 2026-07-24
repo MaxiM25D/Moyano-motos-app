@@ -4,6 +4,7 @@ import { getApiError } from "../../services/api.js";
 import { getClients } from "../../services/clientService.js";
 import { getMotorcycles } from "../../services/motorcycleService.js";
 import { createSale } from "../../services/saleService.js";
+import CurrencyInput from "../common/CurrencyInput.jsx";
 
 const installmentOptions = Array.from({ length: 60 }, (_, index) => index + 1);
 
@@ -169,11 +170,11 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                   <div className="sale-form-grid">
                     <label>
                       <span>Precio de venta *</span>
-                      <input type="number" name="salePrice" value={form.salePrice} onChange={handleChange} min="0.01" step="0.01" placeholder="0,00" required />
+                      <CurrencyInput name="salePrice" value={form.salePrice} onValueChange={(value) => setForm((current) => ({ ...current, salePrice: value }))} min="0.01" placeholder="0,00" required />
                     </label>
                     <label>
                       <span>Entrega inicial *</span>
-                      <input type="number" name="downPayment" value={form.downPayment} onChange={handleChange} min="0" step="0.01" placeholder="0,00" required />
+                      <CurrencyInput name="downPayment" value={form.downPayment} onValueChange={(value) => setForm((current) => ({ ...current, downPayment: value }))} min="0" placeholder="0,00" required />
                     </label>
                     <label>
                       <span>Cantidad de cuotas *</span>

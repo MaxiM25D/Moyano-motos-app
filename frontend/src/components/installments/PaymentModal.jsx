@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FiCheck, FiX } from "react-icons/fi";
 import { getApiError } from "../../services/api.js";
 import { payInstallment } from "../../services/installmentService.js";
+import CurrencyInput from "../common/CurrencyInput.jsx";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -53,7 +54,6 @@ function PaymentModal({ installment, onClose, onPaid }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    if (name === "amount") setAmountManuallyEdited(true);
 
     setForm((current) => {
       const next = { ...current, [name]: value };
@@ -63,6 +63,11 @@ function PaymentModal({ installment, onClose, onPaid }) {
       }
       return next;
     });
+  };
+
+  const handleAmountChange = (value) => {
+    setAmountManuallyEdited(true);
+    setForm((current) => ({ ...current, amount: value }));
   };
 
   const handleSubmit = async (event) => {
@@ -143,7 +148,7 @@ function PaymentModal({ installment, onClose, onPaid }) {
               </label>
               <label>
                 <span>Importe recibido *</span>
-                <input type="number" name="amount" value={form.amount} onChange={handleChange} min="0.01" max={totalAmount} step="0.01" inputMode="decimal" required />
+                <CurrencyInput name="amount" value={form.amount} onValueChange={handleAmountChange} min="0.01" max={totalAmount} required />
               </label>
               {isPartialPayment && (
                 <label className="payment-allocation-field">
