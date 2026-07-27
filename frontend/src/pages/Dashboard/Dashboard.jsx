@@ -47,7 +47,7 @@ const getDueAlert = (installment) => {
 };
 
 const emptyDashboard = {
-  paid: { count: 0, amount: 0 },
+  paid: { count: 0, amount: 0, clients: { paid: 0, active: 0 } },
   pending: { count: 0, amount: 0 },
   overdue: { count: 0, amount: 0 },
   upcomingInstallments: [],
@@ -112,6 +112,10 @@ function Dashboard() {
             <div className="metric-count">
               <strong>{loading ? "--" : data.paid.count}</strong>
               <span>cuotas cobradas</span>
+            </div>
+            <div className="metric-client-count">
+              <span>Clientes que pagaron</span>
+              <strong>{loading ? "-- / --" : `${data.paid.clients?.paid || 0} / ${data.paid.clients?.active || 0}`}</strong>
             </div>
             <div className="metric-amount">
               <span>Monto ingresado</span>

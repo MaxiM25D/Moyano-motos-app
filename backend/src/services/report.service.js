@@ -48,9 +48,15 @@ const parseRange = (query) => {
 export class ReportService {
   async getDashboard() {
     const range = getCurrentMonthRange();
-    const [paid, pending, overdue, upcomingInstallments, attentionRequired] = await Promise.all(
-      reportRepository.getDashboard(range)
-    );
+    const [
+      paid,
+      pending,
+      overdue,
+      upcomingInstallments,
+      attentionRequired,
+      activeClients,
+      clientsWithPayments
+    ] = await Promise.all(reportRepository.getDashboard(range));
 
     return {
       period: {
@@ -59,7 +65,11 @@ export class ReportService {
       },
       paid: {
         amount: paid._sum.amount || 0,
-        count: paid._count.id
+        count: paid._count.id,
+        clients: {
+          paid: clientsWithPayments.length,
+          active: activeClients.length
+        }
       },
       pending: {
         amount: pending._sum.amount || 0,

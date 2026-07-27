@@ -64,6 +64,30 @@ export class ReportRepository {
         include: installmentSaleInclude,
         orderBy: { dueDate: "asc" },
         take: 5
+      }),
+      prisma.sale.findMany({
+        where: { status: "ACTIVE" },
+        select: { clientId: true },
+        distinct: ["clientId"]
+      }),
+      prisma.sale.findMany({
+        where: {
+          status: "ACTIVE",
+          installments: {
+            some: {
+              payment: {
+                is: {
+                  paidAt: {
+                    gte: from,
+                    lt: to
+                  }
+                }
+              }
+            }
+          }
+        },
+        select: { clientId: true },
+        distinct: ["clientId"]
       })
     ];
   }
