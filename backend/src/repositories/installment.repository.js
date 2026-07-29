@@ -1,5 +1,11 @@
 import { prisma } from "../config/db/prisma.client.js";
 import { addCalendarMonths } from "../utils/date.js";
+import { HttpError } from "../utils/httpError.js";
+import { distributeCents } from "../utils/paymentAdjustments.js";
+
+const CENTS_FACTOR = 100;
+const toCents = (amount) => Math.round(Number(amount) * CENTS_FACTOR);
+const toMoney = (cents) => (cents / CENTS_FACTOR).toFixed(2);
 
 const installmentInclude = {
   payment: {
@@ -270,6 +276,15 @@ export class InstallmentRepository {
 
   payInstallment(installment, paymentData, installmentAdjustments) {
     return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(installment.saleId)})`;
+
+      const currentInstallment = await tx.installment.findUnique({
+        where: { id: installment.id }
+      });
+      if (!currentInstallment || currentInstallment.status !== "PENDING") {
+        throw new HttpError("La cuota ya no esta disponible para registrar el pago", 409);
+      }
+
       const paidInstallment = await tx.installment.update({
         where: { id: installment.id },
         data: {
@@ -318,6 +333,106 @@ export class InstallmentRepository {
 
       return tx.installment.findUnique({
         where: { id: paidInstallment.id },
+        include: installmentInclude
+      });
+    });
+  }
+
+  revertPayment(installment) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(73412502, ${Number(installment.saleId)})`;
+
+      const currentInstallment = await tx.installment.findUnique({
+        where: { id: installment.id },
+        include: {
+          payment: {
+            include: { receipt: true }
+          }
+        }
+      });
+      if (!currentInstallment || currentInstallment.status !== "PAID" || !currentInstallment.payment) {
+        throw new HttpError("La cuota no tiene un pago para revertir", 409);
+      }
+
+      const laterPaidCount = await tx.installment.count({
+        where: {
+          saleId: currentInstallment.saleId,
+          number: { gt: currentInstallment.number },
+          status: "PAID"
+        }
+      });
+      if (laterPaidCount > 0) {
+        throw new HttpError("Primero debes revertir las cuotas posteriores que ya estan pagadas", 409);
+      }
+
+      const laterRefinancing = await tx.refinancing.findFirst({
+        where: {
+          saleId: currentInstallment.saleId,
+          createdAt: { gt: currentInstallment.payment.createdAt }
+        },
+        select: { id: true }
+      });
+      if (laterRefinancing) {
+        throw new HttpError("No se puede revertir porque la venta fue refinanciada despues de este pago", 409);
+      }
+
+      const carriedBalanceCents = toCents(currentInstallment.payment.carriedBalance || 0);
+      if (carriedBalanceCents > 0) {
+        const futureInstallments = await tx.installment.findMany({
+          where: {
+            saleId: currentInstallment.saleId,
+            number: { gt: currentInstallment.number },
+            status: "PENDING"
+          },
+          orderBy: { number: "asc" }
+        });
+        const targetInstallments = currentInstallment.payment.balanceAllocation === "NEXT_INSTALLMENT"
+          ? futureInstallments.slice(0, 1)
+          : currentInstallment.payment.balanceAllocation === "REMAINING_INSTALLMENTS"
+            ? futureInstallments
+            : [];
+
+        if (!targetInstallments.length) {
+          throw new HttpError("No se puede reconstruir el saldo trasladado de este pago", 409);
+        }
+
+        const deductions = distributeCents(carriedBalanceCents, targetInstallments.length);
+
+        for (const [index, target] of targetInstallments.entries()) {
+          const deductionCents = deductions[index];
+          const adjustedAmountCents = toCents(target.amount) - deductionCents;
+
+          if (adjustedAmountCents < 1) {
+            throw new HttpError("No se puede revertir porque el plan fue modificado despues del pago", 409);
+          }
+
+          await tx.installment.update({
+            where: { id: target.id },
+            data: { amount: toMoney(adjustedAmountCents) }
+          });
+        }
+      }
+
+      await tx.receipt.deleteMany({
+        where: { paymentId: currentInstallment.payment.id }
+      });
+      await tx.payment.delete({
+        where: { id: currentInstallment.payment.id }
+      });
+      await tx.installment.update({
+        where: { id: currentInstallment.id },
+        data: {
+          status: "PENDING",
+          paidAt: null
+        }
+      });
+      await tx.sale.update({
+        where: { id: currentInstallment.saleId },
+        data: { status: "ACTIVE" }
+      });
+
+      return tx.installment.findUnique({
+        where: { id: currentInstallment.id },
         include: installmentInclude
       });
     });

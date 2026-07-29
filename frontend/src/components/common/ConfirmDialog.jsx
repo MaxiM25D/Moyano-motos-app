@@ -2,7 +2,16 @@ import { useEffect } from "react";
 import { FiAlertTriangle, FiTrash2, FiX } from "react-icons/fi";
 import "./ConfirmDialog.css";
 
-function ConfirmDialog({ title, message, confirmLabel = "Eliminar", loading, onCancel, onConfirm }) {
+function ConfirmDialog({
+  title,
+  message,
+  confirmLabel = "Eliminar",
+  loadingLabel = "Eliminando...",
+  confirmIcon = <FiTrash2 />,
+  loading,
+  onCancel,
+  onConfirm
+}) {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape" && !loading) onCancel();
@@ -23,7 +32,7 @@ function ConfirmDialog({ title, message, confirmLabel = "Eliminar", loading, onC
         </header>
         <footer>
           <button className="secondary-button" type="button" onClick={onCancel} disabled={loading}>Cancelar</button>
-          <button className="danger-button" type="button" onClick={onConfirm} disabled={loading}><FiTrash2 />{loading ? "Eliminando..." : confirmLabel}</button>
+          <button className="danger-button" type="button" onClick={onConfirm} disabled={loading}>{confirmIcon}{loading ? loadingLabel : confirmLabel}</button>
         </footer>
       </section>
     </div>

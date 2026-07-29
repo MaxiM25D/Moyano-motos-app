@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { FiCheckCircle, FiChevronDown, FiChevronUp, FiClock, FiDollarSign, FiEdit2, FiFileText, FiPlus, FiRefreshCw, FiTrash2, FiX } from "react-icons/fi";
+import { FiCheckCircle, FiChevronDown, FiChevronUp, FiClock, FiDollarSign, FiEdit2, FiFileText, FiPlus, FiRefreshCw, FiRotateCcw, FiTrash2, FiX } from "react-icons/fi";
 import ConfirmDialog from "../common/ConfirmDialog.jsx";
 import InstallmentFormModal from "../installments/InstallmentFormModal.jsx";
 import PaymentModal from "../installments/PaymentModal.jsx";
 import { getApiError } from "../../services/api.js";
-import { deleteInstallment } from "../../services/installmentService.js";
+import { deleteInstallment, revertInstallmentPayment } from "../../services/installmentService.js";
 import { getSaleById } from "../../services/saleService.js";
 import RefinancingFormModal from "./RefinancingFormModal.jsx";
 import RefinancingReceiptViewer from "./RefinancingReceiptViewer.jsx";
@@ -22,7 +22,9 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
   const [installmentToPay, setInstallmentToPay] = useState(null);
   const [installmentToEdit, setInstallmentToEdit] = useState(null);
   const [installmentToDelete, setInstallmentToDelete] = useState(null);
+  const [installmentToRevert, setInstallmentToRevert] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [reverting, setReverting] = useState(false);
   const [planError, setPlanError] = useState("");
   const [planNotice, setPlanNotice] = useState("");
   const childDialogOpen = receiptOpen
@@ -31,7 +33,8 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
     || Boolean(selectedRefinancing)
     || Boolean(installmentToPay)
     || Boolean(installmentToEdit)
-    || Boolean(installmentToDelete);
+    || Boolean(installmentToDelete)
+    || Boolean(installmentToRevert);
 
   useEffect(() => {
     const handleKeyDown = (event) => event.key === "Escape" && !childDialogOpen && onClose();
@@ -40,6 +43,12 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
   }, [childDialogOpen, onClose]);
 
   const paidCount = sale.installments.filter((item) => item.status === "PAID").length;
+  const lastPaidNumber = Math.max(
+    0,
+    ...sale.installments
+      .filter((item) => item.status === "PAID")
+      .map((item) => item.number)
+  );
   const pendingCount = sale.installments.filter((item) => item.status === "PENDING").length;
   const paidAmount = Number(sale.paidAmount || 0);
   const outstandingBalance = Number(
@@ -103,6 +112,24 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
       setPlanError(getApiError(requestError, "No se pudo eliminar la cuota"));
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleRevertPayment = async () => {
+    setReverting(true);
+    setPlanError("");
+    setPlanNotice("");
+    const installmentNumber = installmentToRevert.number;
+
+    try {
+      await revertInstallmentPayment(installmentToRevert.id);
+      setInstallmentToRevert(null);
+      await refreshPlan(`El pago de la cuota ${installmentNumber} fue revertido y la cuota volvio a pendiente.`);
+    } catch (requestError) {
+      setInstallmentToRevert(null);
+      setPlanError(getApiError(requestError, "No se pudo revertir el pago de la cuota"));
+    } finally {
+      setReverting(false);
     }
   };
 
@@ -249,6 +276,22 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
                           </div>
                         )}
                       </div>
+                    ) : installment.status === "PAID" && canManagePlan && installment.number === lastPaidNumber ? (
+                      <div className="sale-installment-actions">
+                        <button
+                          className="sale-installment-revert"
+                          type="button"
+                          onClick={() => {
+                            setPlanError("");
+                            setPlanNotice("");
+                            setInstallmentToRevert(installment);
+                          }}
+                          aria-label={`Volver cuota ${installment.number} a pendiente`}
+                          title="Corregir pago"
+                        >
+                          <FiRotateCcw /> Corregir
+                        </button>
+                      </div>
                     ) : <span className="sale-installment-action-placeholder" />
                   )}
                 </div>
@@ -297,6 +340,18 @@ function SaleDetailModal({ sale, canManagePlan, canCollect, onPlanChanged, onClo
           loading={deleting}
           onCancel={() => setInstallmentToDelete(null)}
           onConfirm={handleDeleteInstallment}
+        />
+      )}
+      {installmentToRevert && (
+        <ConfirmDialog
+          title={`Volver cuota ${installmentToRevert.number} a pendiente`}
+          message="Se anularan el pago y su recibo. El saldo pendiente, el progreso, los reportes y cualquier saldo trasladado a cuotas futuras se recalcularan. Esta accion no se puede deshacer."
+          confirmLabel="Confirmar correccion"
+          loadingLabel="Revirtiendo..."
+          confirmIcon={<FiRotateCcw />}
+          loading={reverting}
+          onCancel={() => setInstallmentToRevert(null)}
+          onConfirm={handleRevertPayment}
         />
       )}
     </>

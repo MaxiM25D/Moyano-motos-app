@@ -105,3 +105,14 @@ export const payInstallment = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+export const revertInstallmentPayment = async (req, res) => {
+  try {
+    const installment = await installmentService.revertPayment(req.params.id);
+    return sendSuccess(res, "Pago revertido y cuota restablecida", {
+      installment: new InstallmentDTO(installment)
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};

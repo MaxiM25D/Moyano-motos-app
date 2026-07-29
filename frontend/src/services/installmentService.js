@@ -15,6 +15,11 @@ export const payInstallment = async (id, payment) => {
   return response.data.data.installment;
 };
 
+export const revertInstallmentPayment = async (id) => {
+  const response = await api.patch(`/installments/${id}/revert-payment`);
+  return response.data.data.installment;
+};
+
 export const updateInstallment = async (id, installment) => {
   const response = await api.patch(`/installments/${id}`, installment);
   return response.data.data.installment;

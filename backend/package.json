@@ -9,6 +9,7 @@
     "start": "node app.js",
     "start:render": "prisma migrate deploy && node app.js",
     "dev": "nodemon app.js",
+    "test": "node --test",
     "db:reset": "node scripts/resetDatabase.js"
   },
   "dependencies": {

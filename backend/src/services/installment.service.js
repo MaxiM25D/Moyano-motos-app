@@ -1,5 +1,6 @@
 import { InstallmentRepository } from "../repositories/installment.repository.js";
 import { HttpError } from "../utils/httpError.js";
+import { distributeCents } from "../utils/paymentAdjustments.js";
 
 const installmentRepository = new InstallmentRepository();
 const CENTS_FACTOR = 100;
@@ -192,17 +193,12 @@ export class InstallmentService {
       const targetInstallments = balanceAllocation === "NEXT_INSTALLMENT"
         ? futureInstallments.slice(0, 1)
         : futureInstallments;
-      const distributedCents = Math.floor(carriedBalanceCents / targetInstallments.length);
-      let remainingCents = carriedBalanceCents;
+      const additions = distributeCents(carriedBalanceCents, targetInstallments.length);
 
       targetInstallments.forEach((target, index) => {
-        const additionCents = index === targetInstallments.length - 1
-          ? remainingCents
-          : distributedCents;
-        remainingCents -= additionCents;
         installmentAdjustments.push({
           id: target.id,
-          amount: toMoney(additionCents)
+          amount: toMoney(additions[index])
         });
       });
     }
@@ -223,5 +219,17 @@ export class InstallmentService {
       },
       installmentAdjustments
     );
+  }
+
+  async revertPayment(id) {
+    const installmentId = validateId(id, "ID de cuota");
+    const installment = await installmentRepository.getInstallmentById(installmentId);
+
+    if (!installment) throw new HttpError("Cuota no encontrada", 404);
+    if (installment.status !== "PAID" || !installment.payment) {
+      throw new HttpError("La cuota no tiene un pago para revertir", 409);
+    }
+
+    return installmentRepository.revertPayment(installment);
   }
 }

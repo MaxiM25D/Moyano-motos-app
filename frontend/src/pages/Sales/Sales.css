@@ -143,6 +143,9 @@
 .sale-installment-pay svg { font-size: 12px; }
 .sale-installment-edit,
 .sale-installment-delete { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 5px; background: white; font-size: 14px; }
+.sale-installment-revert { width: 72px; height: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid #d9b36f; border-radius: 5px; background: white; color: #8a5a16; font-size: 10px; font-weight: 700; }
+.sale-installment-revert:hover { border-color: #a66b17; background: #fff6e5; }
+.sale-installment-revert svg { font-size: 12px; }
 .sale-installment-edit { border: 1px solid #c9ded6; color: #167052; }
 .sale-installment-edit:hover { border-color: #167052; background: #edf7f3; }
 .sale-installment-delete { border: 1px solid #ead3d4; color: #b33a40; }

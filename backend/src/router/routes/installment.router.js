@@ -7,6 +7,7 @@ import {
   getOverdueInstallments,
   getPendingInstallments,
   payInstallment,
+  revertInstallmentPayment,
   updateInstallment,
   updateInstallmentPlan
 } from "../../controllers/installment.controller.js";
@@ -54,6 +55,12 @@ router.patch(
   roleMiddleware("ADMIN", "COLLECTOR"),
   validate(payInstallmentSchema),
   payInstallment
+);
+router.patch(
+  "/:id/revert-payment",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  revertInstallmentPayment
 );
 
 export default router;
