@@ -1,4 +1,5 @@
 import { ReceiptDTO } from "../dto/receipt.dto.js";
+import { InstallmentDTO } from "../dto/installment.dto.js";
 import { ReceiptService } from "../services/receipt.service.js";
 import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
@@ -6,9 +7,24 @@ const receiptService = new ReceiptService();
 
 export const getReceipts = async (req, res) => {
   try {
-    const receipts = await receiptService.getReceipts();
+    const { receipts, summary, pagination } = await receiptService.getReceipts(req.query);
     return sendSuccess(res, "Recibos obtenidos", {
-      receipts: receipts.map((receipt) => new ReceiptDTO(receipt))
+      receipts: receipts.map((receipt) => new ReceiptDTO(receipt)),
+      summary,
+      pagination
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+export const getPaymentsWithoutReceipt = async (req, res) => {
+  try {
+    const { installments, summary, pagination } = await receiptService.getPaymentsWithoutReceipt(req.query);
+    return sendSuccess(res, "Pagos sin recibo obtenidos", {
+      installments: installments.map((installment) => new InstallmentDTO(installment)),
+      summary,
+      pagination
     });
   } catch (error) {
     return sendError(res, error);

@@ -1,4 +1,5 @@
 import { ReportRepository } from "../repositories/report.repository.js";
+import { buildPagination, parsePagination } from "../utils/pagination.js";
 
 const reportRepository = new ReportRepository();
 const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
@@ -86,9 +87,11 @@ export class ReportService {
 
   async getCollections(query) {
     const { from, to } = parseRange(query);
-    const [payments, totals] = await Promise.all([
-      reportRepository.getCollections(from, to),
-      reportRepository.getCollectionsTotal(from, to)
+    const { page, pageSize, skip } = parsePagination(query);
+    const [payments, totals, methods] = await Promise.all([
+      reportRepository.getCollections(from, to, skip, pageSize),
+      reportRepository.getCollectionsTotal(from, to),
+      reportRepository.getCollectionsByMethod(from, to)
     ]);
 
     return {
@@ -96,12 +99,26 @@ export class ReportService {
       to,
       totalAmount: totals._sum.amount || 0,
       totalPayments: totals._count.id,
-      payments
+      payments,
+      methods: Object.fromEntries(methods.map((item) => [item.method, item._sum.amount || 0])),
+      pagination: buildPagination(totals._count.id, page, pageSize)
     };
   }
 
-  getOverdueInstallments() {
-    return reportRepository.getOverdueInstallments(new Date());
+  async getOverdueInstallments(query = {}) {
+    const today = new Date();
+    const { page, pageSize, skip } = parsePagination(query);
+    const [installments, totals] = await Promise.all([
+      reportRepository.getOverdueInstallments(today, skip, pageSize),
+      reportRepository.getOverdueTotal(today)
+    ]);
+
+    return {
+      installments,
+      totalAmount: totals._sum.amount || 0,
+      totalInstallments: totals._count.id,
+      pagination: buildPagination(totals._count.id, page, pageSize)
+    };
   }
 
   async getDebtSummary() {

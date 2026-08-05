@@ -1,8 +1,17 @@
 import api from "./api.js";
 
-export const getReceipts = async () => {
-  const response = await api.get("/receipts");
-  return response.data.data.receipts;
+export const getReceipts = async ({ search = "", page = 1, pageSize = 20 } = {}) => {
+  const response = await api.get("/receipts", {
+    params: { search: search || undefined, page, pageSize }
+  });
+  return response.data.data;
+};
+
+export const getPaymentsWithoutReceipt = async ({ search = "", page = 1, pageSize = 20 } = {}) => {
+  const response = await api.get("/receipts/pending", {
+    params: { search: search || undefined, page, pageSize }
+  });
+  return response.data.data;
 };
 
 export const createReceipt = async (paymentId) => {

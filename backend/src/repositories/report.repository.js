@@ -92,7 +92,7 @@ export class ReportRepository {
     ];
   }
 
-  getCollections(from, to) {
+  getCollections(from, to, skip, take) {
     return prisma.payment.findMany({
       where: {
         paidAt: {
@@ -100,6 +100,8 @@ export class ReportRepository {
           lte: to
         }
       },
+      skip,
+      take,
       include: {
         user: true,
         installment: {
@@ -117,6 +119,14 @@ export class ReportRepository {
     });
   }
 
+  getCollectionsByMethod(from, to) {
+    return prisma.payment.groupBy({
+      by: ["method"],
+      where: { paidAt: { gte: from, lte: to } },
+      _sum: { amount: true }
+    });
+  }
+
   getCollectionsTotal(from, to) {
     return prisma.payment.aggregate({
       where: {
@@ -130,12 +140,14 @@ export class ReportRepository {
     });
   }
 
-  getOverdueInstallments(today) {
+  getOverdueInstallments(today, skip, take) {
     return prisma.installment.findMany({
       where: {
         status: "PENDING",
         dueDate: { lt: today }
       },
+      skip,
+      take,
       include: {
         sale: {
           include: {
@@ -145,6 +157,14 @@ export class ReportRepository {
         }
       },
       orderBy: { dueDate: "asc" }
+    });
+  }
+
+  getOverdueTotal(today) {
+    return prisma.installment.aggregate({
+      where: { status: "PENDING", dueDate: { lt: today } },
+      _sum: { amount: true },
+      _count: { id: true }
     });
   }
 

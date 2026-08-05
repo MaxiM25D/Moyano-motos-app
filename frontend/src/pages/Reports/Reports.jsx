@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiAlertCircle, FiBarChart2, FiCalendar, FiCreditCard, FiDollarSign, FiRefreshCw, FiTrendingUp } from "react-icons/fi";
+import Pagination from "../../components/common/Pagination.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
 import { getCollectionsReport, getDebtReport, getOverdueReport, getSalesReport } from "../../services/reportService.js";
@@ -33,7 +34,9 @@ function Reports() {
   const [draftRange, setDraftRange] = useState(initialRange);
   const [range, setRange] = useState(initialRange);
   const [collections, setCollections] = useState(null);
-  const [overdue, setOverdue] = useState([]);
+  const [overdue, setOverdue] = useState({ installments: [], totalAmount: 0, totalInstallments: 0, pagination: null });
+  const [collectionPage, setCollectionPage] = useState(1);
+  const [overduePage, setOverduePage] = useState(1);
   const [debt, setDebt] = useState(null);
   const [sales, setSales] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,8 +49,8 @@ function Reports() {
     try {
       if (isAdmin) {
         const [collectionsData, overdueData, debtData, salesData] = await Promise.all([
-          getCollectionsReport(range),
-          getOverdueReport(),
+          getCollectionsReport(range, collectionPage),
+          getOverdueReport(overduePage),
           getDebtReport(),
           getSalesReport(range)
         ]);
@@ -57,8 +60,8 @@ function Reports() {
         setSales(salesData);
       } else {
         const [collectionsData, overdueData] = await Promise.all([
-          getCollectionsReport(range),
-          getOverdueReport()
+          getCollectionsReport(range, collectionPage),
+          getOverdueReport(overduePage)
         ]);
         setCollections(collectionsData);
         setOverdue(overdueData);
@@ -68,15 +71,12 @@ function Reports() {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, range]);
+  }, [collectionPage, isAdmin, overduePage, range]);
 
   useEffect(() => { loadReports(); }, [loadReports]);
 
   const paymentMethods = useMemo(() => {
-    const totals = (collections?.payments || []).reduce((result, payment) => {
-      result[payment.method] = (result[payment.method] || 0) + Number(payment.amount);
-      return result;
-    }, {});
+    const totals = collections?.methods || {};
     const max = Math.max(...Object.values(totals), 1);
     return Object.entries(methodLabels).map(([method, label]) => ({
       method,
@@ -86,7 +86,7 @@ function Reports() {
     }));
   }, [collections]);
 
-  const overdueAmount = overdue.reduce((sum, item) => sum + Number(item.amount), 0);
+  const overdueAmount = Number(overdue.totalAmount || 0);
 
   const applyRange = (event) => {
     event.preventDefault();
@@ -94,6 +94,7 @@ function Reports() {
       setError("La fecha desde no puede ser posterior a la fecha hasta");
       return;
     }
+    setCollectionPage(1);
     setRange({ ...draftRange });
   };
 
@@ -113,7 +114,7 @@ function Reports() {
 
       <div className={`report-metrics ${isAdmin ? "admin-metrics" : ""}`}>
         <article><span className="report-metric-icon collections"><FiDollarSign /></span><div><p>Cobrado en el periodo</p><strong>{loading ? "--" : money.format(Number(collections?.totalAmount || 0))}</strong><small>{collections?.totalPayments || 0} pagos registrados</small></div></article>
-        <article><span className="report-metric-icon overdue"><FiAlertCircle /></span><div><p>Deuda vencida</p><strong>{loading ? "--" : money.format(overdueAmount)}</strong><small>{overdue.length} cuotas vencidas</small></div></article>
+        <article><span className="report-metric-icon overdue"><FiAlertCircle /></span><div><p>Deuda vencida</p><strong>{loading ? "--" : money.format(overdueAmount)}</strong><small>{overdue.totalInstallments || 0} cuotas vencidas</small></div></article>
         {isAdmin && <article><span className="report-metric-icon sales"><FiTrendingUp /></span><div><p>Ventas del periodo</p><strong>{loading ? "--" : sales?.totalSales || 0}</strong><small>{money.format(Number(sales?.salePrice || 0))} vendidos</small></div></article>}
         {isAdmin && <article><span className="report-metric-icon debt"><FiCreditCard /></span><div><p>Saldo pendiente total</p><strong>{loading ? "--" : money.format(Number(debt?.pending?.amount || 0))}</strong><small>{debt?.pending?.count || 0} cuotas pendientes</small></div></article>}
       </div>
@@ -147,7 +148,8 @@ function Reports() {
       </div>
 
       <article className="report-table-panel">
-        <header><div><h2>Detalle de cobranzas</h2><p>Pagos dentro del rango seleccionado</p></div><span>{collections?.payments?.length || 0} movimientos</span></header>
+        <header><div><h2>Detalle de cobranzas</h2><p>Pagos dentro del rango seleccionado</p></div><span>{collections?.totalPayments || 0} movimientos</span></header>
+        {!loading && <Pagination pagination={collections?.pagination} onPageChange={setCollectionPage} label="cobranzas" />}
         <div className="report-table-scroll">
           {loading ? <div className="report-table-loading"><span /><span /><span /></div> : collections?.payments?.length ? (
             <table className="report-table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Cuota</th><th>Medio</th><th>Cobrador</th><th>Importe</th></tr></thead><tbody>
@@ -165,11 +167,12 @@ function Reports() {
       </article>
 
       <article className="report-table-panel overdue-report-panel">
-        <header><div><h2>Cartera vencida</h2><p>Cuotas pendientes con fecha de vencimiento superada</p></div><span>{overdue.length} cuotas</span></header>
+        <header><div><h2>Cartera vencida</h2><p>Cuotas pendientes con fecha de vencimiento superada</p></div><span>{overdue.totalInstallments || 0} cuotas</span></header>
+        {!loading && <Pagination pagination={overdue.pagination} onPageChange={setOverduePage} label="cuotas vencidas" />}
         <div className="report-table-scroll">
-          {loading ? <div className="report-table-loading"><span /><span /><span /></div> : overdue.length ? (
+          {loading ? <div className="report-table-loading"><span /><span /><span /></div> : overdue.installments.length ? (
             <table className="report-table overdue-report-table"><thead><tr><th>Cliente</th><th>Contacto</th><th>Moto</th><th>Cuota</th><th>Vencimiento</th><th>Atraso</th><th>Importe</th></tr></thead><tbody>
-              {overdue.map((item) => {
+              {overdue.installments.map((item) => {
                 const days = Math.max(1, Math.floor((Date.now() - new Date(item.dueDate)) / 86400000));
                 return <tr key={item.id}>
                   <td data-label="Cliente"><div><strong>{item.sale?.client?.name || "-"}</strong><small>DNI {item.sale?.client?.dni || "-"}</small></div></td>

@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FiEye, FiFilePlus, FiFileText, FiPrinter, FiSearch, FiX } from "react-icons/fi";
 import ReceiptViewer from "../../components/receipts/ReceiptViewer.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getAllPaidInstallments } from "../../services/installmentService.js";
-import { createReceipt, getReceipts } from "../../services/receiptService.js";
+import { createReceipt, getPaymentsWithoutReceipt, getReceipts } from "../../services/receiptService.js";
 import "./Receipts.css";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
@@ -16,6 +16,10 @@ function Receipts() {
   const [installments, setInstallments] = useState([]);
   const [tab, setTab] = useState("RECEIPTS");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
+  const [summary, setSummary] = useState({ issued: 0, printed: 0, pending: 0 });
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,22 +27,35 @@ function Receipts() {
   const [notice, setNotice] = useState("");
   const canManage = ["ADMIN", "COLLECTOR"].includes(user.role);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [receiptList, installmentList] = await Promise.all([
-        getReceipts(),
-        getAllPaidInstallments()
-      ]);
-      setReceipts(receiptList);
-      setInstallments(installmentList);
+      const data = tab === "RECEIPTS"
+        ? await getReceipts({ search: debouncedSearch, page })
+        : await getPaymentsWithoutReceipt({ search: debouncedSearch, page });
+      if (page > data.pagination.totalPages) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+      if (tab === "RECEIPTS") setReceipts(data.receipts);
+      else setInstallments(data.installments);
+      setSummary(data.summary);
+      setPagination(data.pagination);
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudieron cargar los recibos"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, page, tab]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -48,29 +65,7 @@ function Receipts() {
     return () => clearTimeout(timer);
   }, [notice]);
 
-  const paymentsWithoutReceipt = useMemo(() => installments.filter((item) =>
-    item.status === "PAID" && item.payment && !item.payment.receipt
-  ), [installments]);
-
-  const visibleRows = useMemo(() => {
-    const source = tab === "RECEIPTS" ? receipts : paymentsWithoutReceipt;
-    const term = search.trim().toLowerCase();
-    if (!term) return source;
-    return source.filter((item) => {
-      const printable = item.printable;
-      const installment = tab === "RECEIPTS" ? item.payment?.installment : item;
-      return [
-        item.receiptNumber,
-        printable?.client?.name,
-        printable?.client?.dni,
-        installment?.sale?.client?.name,
-        installment?.sale?.client?.dni,
-        installment?.sale?.motorcycle?.domain,
-        installment?.sale?.saleNumber,
-        installment?.saleId
-      ].some((value) => String(value || "").toLowerCase().includes(term));
-    });
-  }, [paymentsWithoutReceipt, receipts, search, tab]);
+  const visibleRows = tab === "RECEIPTS" ? receipts : installments;
 
   const handleGenerate = async (installment) => {
     setGeneratingId(installment.payment.id);
@@ -100,18 +95,20 @@ function Receipts() {
       {error && <div className="receipts-error" role="alert">{error}<button onClick={loadData}>Reintentar</button></div>}
 
       <div className="receipt-metrics">
-        <article><span><FiFileText /></span><div><p>Emitidos</p><strong>{loading ? "--" : receipts.length}</strong><small>Recibos generados</small></div></article>
-        <article><span className="print-metric"><FiPrinter /></span><div><p>Impresos</p><strong>{loading ? "--" : receipts.filter((item) => item.printedAt).length}</strong><small>Con fecha de impresion</small></div></article>
-        <article><span className="pending-metric"><FiFilePlus /></span><div><p>Sin recibo</p><strong>{loading ? "--" : paymentsWithoutReceipt.length}</strong><small>Pagos disponibles</small></div></article>
+        <article><span><FiFileText /></span><div><p>Emitidos</p><strong>{loading ? "--" : summary.issued}</strong><small>Recibos generados</small></div></article>
+        <article><span className="print-metric"><FiPrinter /></span><div><p>Impresos</p><strong>{loading ? "--" : summary.printed}</strong><small>Con fecha de impresion</small></div></article>
+        <article><span className="pending-metric"><FiFilePlus /></span><div><p>Sin recibo</p><strong>{loading ? "--" : summary.pending}</strong><small>Pagos disponibles</small></div></article>
       </div>
 
       <div className="receipts-controls">
         <div className="receipt-tabs">
-          <button className={tab === "RECEIPTS" ? "is-active" : ""} onClick={() => setTab("RECEIPTS")}>Recibos emitidos</button>
-          <button className={tab === "PENDING" ? "is-active" : ""} onClick={() => setTab("PENDING")}>Pagos sin recibo {paymentsWithoutReceipt.length > 0 && <span>{paymentsWithoutReceipt.length}</span>}</button>
+          <button className={tab === "RECEIPTS" ? "is-active" : ""} onClick={() => { setTab("RECEIPTS"); setPage(1); }}>Recibos emitidos</button>
+          <button className={tab === "PENDING" ? "is-active" : ""} onClick={() => { setTab("PENDING"); setPage(1); }}>Pagos sin recibo {summary.pending > 0 && <span>{summary.pending}</span>}</button>
         </div>
         <div className="receipts-search"><FiSearch /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cliente, DNI, dominio o numero" aria-label="Buscar recibos" />{search && <button onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>}</div>
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label={tab === "RECEIPTS" ? "recibos" : "pagos sin recibo"} />}
 
       <div className="receipts-table-wrap">
         {loading ? <div className="receipts-loading"><span /><span /><span /><span /></div> : visibleRows.length ? (

@@ -7,21 +7,6 @@ export const getInstallments = async ({ search = "", filter = "ALL", sort = "PRI
   return response.data.data;
 };
 
-export const getAllPaidInstallments = async () => {
-  const installments = [];
-  let page = 1;
-  let totalPages = 1;
-
-  do {
-    const data = await getInstallments({ filter: "PAID", page, pageSize: 50 });
-    installments.push(...data.installments);
-    totalPages = data.pagination.totalPages;
-    page += 1;
-  } while (page <= totalPages);
-
-  return installments;
-};
-
 export const createInstallment = async (saleId, installment) => {
   const response = await api.post(`/installments/sale/${saleId}`, installment);
   return response.data.data.installment;

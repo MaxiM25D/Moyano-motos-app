@@ -23,8 +23,8 @@ export const getCollectionsReport = async (req, res) => {
 
 export const getOverdueReport = async (req, res) => {
   try {
-    const installments = await reportService.getOverdueInstallments();
-    return sendSuccess(res, "Reporte de cuotas vencidas obtenido", { installments });
+    const report = await reportService.getOverdueInstallments(req.query);
+    return sendSuccess(res, "Reporte de cuotas vencidas obtenido", { report });
   } catch (error) {
     return sendError(res, error);
   }
