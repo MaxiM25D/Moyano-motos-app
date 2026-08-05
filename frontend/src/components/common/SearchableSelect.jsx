@@ -15,6 +15,8 @@ function SearchableSelect({
   ariaLabel,
   placeholder,
   emptyMessage = "No hay coincidencias",
+  onSearchChange,
+  loading = false,
   required = false,
   autoFocus = false
 }) {
@@ -68,6 +70,7 @@ function SearchableSelect({
 
   const handleInputChange = (event) => {
     setQuery(event.target.value);
+    onSearchChange?.(event.target.value);
     onValueChange("");
     setOpen(true);
     setActiveIndex(0);
@@ -141,7 +144,9 @@ function SearchableSelect({
 
       {open && (
         <div className="searchable-select-menu" id={listId} role="listbox">
-          {filteredOptions.length ? filteredOptions.map((option, index) => (
+          {loading ? (
+            <p>Buscando...</p>
+          ) : filteredOptions.length ? filteredOptions.map((option, index) => (
             <button
               id={`${listId}-${option.value}`}
               className={index === activeIndex ? "is-active" : ""}

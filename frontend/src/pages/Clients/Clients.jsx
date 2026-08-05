@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiSearch, FiTrash2, FiUser, FiUsers, FiX } from "react-icons/fi";
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import ClientFormModal from "../../components/clients/ClientFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
@@ -18,6 +19,8 @@ function Clients() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [selectedClient, setSelectedClient] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
@@ -29,7 +32,10 @@ function Clients() {
   const canDelete = user.role === "ADMIN";
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 350);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -38,13 +44,19 @@ function Clients() {
     setError("");
 
     try {
-      setClients(await getClients(debouncedSearch));
+      const data = await getClients({ search: debouncedSearch, page });
+      if (page > data.pagination.totalPages) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+      setClients(data.clients);
+      setPagination(data.pagination);
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudieron cargar los clientes"));
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, page]);
 
   useEffect(() => {
     loadClients();
@@ -122,7 +134,7 @@ function Clients() {
             <button type="button" onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>
           )}
         </div>
-        <span className="client-count">{loading ? "Cargando..." : `${clients.length} ${clients.length === 1 ? "cliente" : "clientes"}`}</span>
+        <span className="client-count">{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "cliente" : "clientes"}`}</span>
       </div>
 
       <div className="clients-table-wrap">
@@ -176,6 +188,8 @@ function Clients() {
           </div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="clientes" />}
 
       {modalOpen && (
         <ClientFormModal

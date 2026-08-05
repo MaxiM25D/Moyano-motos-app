@@ -6,9 +6,10 @@ const saleService = new SaleService();
 
 export const getSales = async (req, res) => {
   try {
-    const sales = await saleService.getSales();
+    const { sales, pagination } = await saleService.getSales(req.query);
     return sendSuccess(res, "Ventas obtenidas", {
-      sales: sales.map((sale) => new SaleDTO(sale))
+      sales: sales.map((sale) => new SaleDTO(sale)),
+      pagination
     });
   } catch (error) {
     return sendError(res, error);

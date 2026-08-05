@@ -1,5 +1,6 @@
 import { MotorcycleRepository } from "../repositories/motorcycle.repository.js";
 import { HttpError } from "../utils/httpError.js";
+import { buildPagination, parsePagination } from "../utils/pagination.js";
 
 const motorcycleRepository = new MotorcycleRepository();
 
@@ -18,8 +19,16 @@ const validateId = (id) => {
 };
 
 export class MotorcycleService {
-  getMotorcycles(search) {
-    return motorcycleRepository.getMotorcycles(search);
+  async getMotorcycles(query = {}) {
+    const { page, pageSize, skip } = parsePagination(query);
+    const { motorcycles, total } = await motorcycleRepository.getMotorcycles({
+      search: query.search?.trim(),
+      available: query.available === "true",
+      skip,
+      take: pageSize
+    });
+
+    return { motorcycles, pagination: buildPagination(total, page, pageSize) };
   }
 
   async getMotorcycleById(id) {

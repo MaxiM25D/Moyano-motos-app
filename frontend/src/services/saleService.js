@@ -1,8 +1,10 @@
 import api from "./api.js";
 
-export const getSales = async () => {
-  const response = await api.get("/sales");
-  return response.data.data.sales;
+export const getSales = async ({ search = "", page = 1, pageSize = 20 } = {}) => {
+  const response = await api.get("/sales", {
+    params: { search: search || undefined, page, pageSize }
+  });
+  return response.data.data;
 };
 
 export const getSaleById = async (id) => {

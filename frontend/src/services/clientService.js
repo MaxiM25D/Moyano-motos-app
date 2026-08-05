@@ -1,10 +1,10 @@
 import api from "./api.js";
 
-export const getClients = async (search = "") => {
+export const getClients = async ({ search = "", page = 1, pageSize = 20 } = {}) => {
   const response = await api.get("/clients", {
-    params: search ? { search } : undefined
+    params: { search: search || undefined, page, pageSize }
   });
-  return response.data.data.clients;
+  return response.data.data;
 };
 
 export const createClient = async (client) => {

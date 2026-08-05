@@ -26,7 +26,7 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 2
 });
 
-function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
+function SaleFormModal({ onClose, onSaved }) {
   const today = toInputDate(new Date());
   const [form, setForm] = useState({
     clientId: "",
@@ -40,6 +40,10 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
   });
   const [clients, setClients] = useState([]);
   const [motorcycles, setMotorcycles] = useState([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [motorcycleSearch, setMotorcycleSearch] = useState("");
+  const [searchingClients, setSearchingClients] = useState(false);
+  const [searchingMotorcycles, setSearchingMotorcycles] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -49,10 +53,10 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
       try {
         const [clientList, motorcycleList] = await Promise.all([
           getClients(),
-          getMotorcycles()
+          getMotorcycles({ available: true })
         ]);
-        setClients(clientList);
-        setMotorcycles(motorcycleList.filter((item) => !soldMotorcycleIds.has(item.id)));
+        setClients(clientList.clients);
+        setMotorcycles(motorcycleList.motorcycles);
       } catch (requestError) {
         setError(getApiError(requestError, "No se pudieron cargar clientes y motos"));
       } finally {
@@ -61,7 +65,37 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
     };
 
     loadOptions();
-  }, [soldMotorcycleIds]);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      setSearchingClients(true);
+      try {
+        const data = await getClients({ search: clientSearch });
+        setClients(data.clients);
+      } catch (requestError) {
+        setError(getApiError(requestError, "No se pudieron buscar clientes"));
+      } finally {
+        setSearchingClients(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [clientSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      setSearchingMotorcycles(true);
+      try {
+        const data = await getMotorcycles({ search: motorcycleSearch, available: true });
+        setMotorcycles(data.motorcycles);
+      } catch (requestError) {
+        setError(getApiError(requestError, "No se pudieron buscar motos"));
+      } finally {
+        setSearchingMotorcycles(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [motorcycleSearch]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -162,6 +196,8 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                         name="clientId"
                         value={form.clientId}
                         options={clientOptions}
+                        onSearchChange={setClientSearch}
+                        loading={searchingClients}
                         onValueChange={(value) => setForm((current) => ({ ...current, clientId: value }))}
                         ariaLabel="Buscar y seleccionar cliente"
                         placeholder="Buscar por nombre o DNI"
@@ -175,6 +211,8 @@ function SaleFormModal({ soldMotorcycleIds, onClose, onSaved }) {
                         name="motorcycleId"
                         value={form.motorcycleId}
                         options={motorcycleOptions}
+                        onSearchChange={setMotorcycleSearch}
+                        loading={searchingMotorcycles}
                         onValueChange={(value) => setForm((current) => ({ ...current, motorcycleId: value }))}
                         ariaLabel="Buscar y seleccionar moto disponible"
                         placeholder="Buscar marca, modelo o dominio"

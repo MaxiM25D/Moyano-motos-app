@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FiEye, FiFileText, FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi";
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import SaleDetailModal from "../../components/sales/SaleDetailModal.jsx";
 import SaleFormModal from "../../components/sales/SaleFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -30,6 +31,9 @@ function Sales() {
   const { user } = useAuth();
   const [sales, setSales] = useState([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [saleToDelete, setSaleToDelete] = useState(null);
@@ -41,17 +45,31 @@ function Sales() {
   const canDelete = user.role === "ADMIN";
   const canCollect = ["ADMIN", "COLLECTOR"].includes(user.role);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadSales = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setSales(await getSales());
+      const data = await getSales({ search: debouncedSearch, page });
+      if (page > data.pagination.totalPages) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+      setSales(data.sales);
+      setPagination(data.pagination);
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudieron cargar las ventas"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, page]);
 
   useEffect(() => {
     loadSales();
@@ -62,26 +80,6 @@ function Sales() {
     const timer = setTimeout(() => setNotice(""), 3500);
     return () => clearTimeout(timer);
   }, [notice]);
-
-  const filteredSales = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return sales;
-
-    return sales.filter((sale) => [
-      sale.id,
-      sale.saleNumber,
-      sale.client?.name,
-      sale.client?.dni,
-      sale.motorcycle?.brand,
-      sale.motorcycle?.model,
-      sale.motorcycle?.domain
-    ].some((value) => String(value || "").toLowerCase().includes(term)));
-  }, [sales, search]);
-
-  const soldMotorcycleIds = useMemo(
-    () => new Set(sales.map((sale) => sale.motorcycleId)),
-    [sales]
-  );
 
   const handleCreated = async (sale) => {
     setCreateOpen(false);
@@ -128,17 +126,17 @@ function Sales() {
           <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por cliente, DNI, moto o dominio" aria-label="Buscar ventas" />
           {search && <button onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>}
         </div>
-        <span>{loading ? "Cargando..." : `${filteredSales.length} ${filteredSales.length === 1 ? "venta" : "ventas"}`}</span>
+        <span>{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "venta" : "ventas"}`}</span>
       </div>
 
       <div className="sales-table-wrap">
         {loading ? (
           <div className="sales-loading"><span /><span /><span /><span /></div>
-        ) : filteredSales.length ? (
+        ) : sales.length ? (
           <table className="sales-table">
             <thead><tr><th>Venta</th><th>Cliente</th><th>Moto</th><th>Fecha</th><th>Plan</th><th>Saldo pendiente</th><th>Estado</th><th><span className="sr-only">Acciones</span></th></tr></thead>
             <tbody>
-              {filteredSales.map((sale) => {
+              {sales.map((sale) => {
                 const paid = sale.installments.filter((item) => item.status === "PAID").length;
                 return (
                   <tr key={sale.id}>
@@ -165,7 +163,9 @@ function Sales() {
         )}
       </div>
 
-      {createOpen && <SaleFormModal soldMotorcycleIds={soldMotorcycleIds} onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="ventas" />}
+
+      {createOpen && <SaleFormModal onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
       {selectedSale && <SaleDetailModal sale={selectedSale} canManagePlan={canDelete} canCollect={canCollect} onPlanChanged={handlePlanChanged} onClose={() => setSelectedSale(null)} />}
       {saleToDelete && <ConfirmDialog title={`Eliminar venta #${saleToDelete.saleNumber}`} message="Se eliminaran la venta, sus cuotas, pagos y recibos relacionados. Esta accion no se puede deshacer." loading={deleting} onCancel={() => setSaleToDelete(null)} onConfirm={handleDelete} />}
     </section>

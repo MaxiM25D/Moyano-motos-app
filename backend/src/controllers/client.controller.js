@@ -6,9 +6,10 @@ const clientService = new ClientService();
 
 export const getClients = async (req, res) => {
   try {
-    const clients = await clientService.getClients(req.query.search);
+    const { clients, pagination } = await clientService.getClients(req.query);
     return sendSuccess(res, "Clientes obtenidos", {
-      clients: clients.map((client) => new ClientDTO(client))
+      clients: clients.map((client) => new ClientDTO(client)),
+      pagination
     });
   } catch (error) {
     return sendError(res, error);

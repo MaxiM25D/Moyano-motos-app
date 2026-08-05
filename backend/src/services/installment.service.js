@@ -1,6 +1,7 @@
 import { InstallmentRepository } from "../repositories/installment.repository.js";
 import { HttpError } from "../utils/httpError.js";
 import { distributeCents } from "../utils/paymentAdjustments.js";
+import { buildPagination, parsePagination } from "../utils/pagination.js";
 
 const installmentRepository = new InstallmentRepository();
 const CENTS_FACTOR = 100;
@@ -20,8 +21,66 @@ const validateId = (id, label) => {
 };
 
 export class InstallmentService {
-  getInstallments() {
-    return installmentRepository.getInstallments();
+  async getInstallments(query = {}) {
+    const { page, pageSize, skip } = parsePagination(query);
+    const filter = ["ALL", "PENDING", "UPCOMING", "OVERDUE", "PAID"].includes(query.filter)
+      ? query.filter
+      : "ALL";
+    const sort = ["PRIORITY", "DUE_DATE", "CLIENT", "AMOUNT_DESC"].includes(query.sort)
+      ? query.sort
+      : "PRIORITY";
+    const search = query.search?.trim();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const upcomingUntil = new Date(today);
+    upcomingUntil.setDate(upcomingUntil.getDate() + 30);
+
+    const searchWhere = search ? {
+      OR: [
+        { sale: { client: { name: { contains: search, mode: "insensitive" } } } },
+        { sale: { client: { dni: { contains: search } } } },
+        { sale: { motorcycle: { brand: { contains: search, mode: "insensitive" } } } },
+        { sale: { motorcycle: { model: { contains: search, mode: "insensitive" } } } },
+        { sale: { motorcycle: { domain: { contains: search, mode: "insensitive" } } } },
+        ...(Number.isInteger(Number(search)) && Number(search) > 0
+          ? [{ saleId: Number(search) }, { sale: { saleNumber: Number(search) } }]
+          : [])
+      ]
+    } : undefined;
+
+    const filterWhere = filter === "PENDING"
+      ? { status: "PENDING" }
+      : filter === "UPCOMING"
+        ? { status: "PENDING", dueDate: { gte: today, lte: upcomingUntil } }
+        : filter === "OVERDUE"
+          ? { status: "PENDING", dueDate: { lt: today } }
+          : filter === "PAID"
+            ? { status: "PAID" }
+            : {};
+    const where = searchWhere ? { AND: [searchWhere, filterWhere] } : filterWhere;
+
+    const orderBy = sort === "CLIENT"
+      ? [{ sale: { client: { name: "asc" } } }, { dueDate: "asc" }, { id: "asc" }]
+      : sort === "AMOUNT_DESC"
+        ? [{ amount: "desc" }, { dueDate: "asc" }, { id: "asc" }]
+        : sort === "DUE_DATE"
+          ? [{ dueDate: "asc" }, { id: "asc" }]
+          : [{ status: "asc" }, { dueDate: "asc" }, { id: "asc" }];
+
+    const result = await installmentRepository.getInstallments({
+      where,
+      orderBy,
+      skip,
+      take: pageSize,
+      searchWhere,
+      today,
+      upcomingUntil
+    });
+
+    return {
+      ...result,
+      pagination: buildPagination(result.total, page, pageSize)
+    };
   }
 
   getPendingInstallments() {

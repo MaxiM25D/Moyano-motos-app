@@ -1,10 +1,10 @@
 import api from "./api.js";
 
-export const getMotorcycles = async (search = "") => {
+export const getMotorcycles = async ({ search = "", page = 1, pageSize = 20, available = false } = {}) => {
   const response = await api.get("/motorcycles", {
-    params: search ? { search } : undefined
+    params: { search: search || undefined, page, pageSize, available: available || undefined }
   });
-  return response.data.data.motorcycles;
+  return response.data.data;
 };
 
 export const createMotorcycle = async (motorcycle) => {

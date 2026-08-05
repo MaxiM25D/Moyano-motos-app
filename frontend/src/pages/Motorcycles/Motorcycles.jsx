@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiSearch, FiShoppingBag, FiTrash2, FiX } from "react-icons/fi";
 import ConfirmDialog from "../../components/common/ConfirmDialog.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import MotorcycleFormModal from "../../components/motorcycles/MotorcycleFormModal.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
@@ -12,6 +13,8 @@ function Motorcycles() {
   const [motorcycles, setMotorcycles] = useState([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [selectedMotorcycle, setSelectedMotorcycle] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [motorcycleToDelete, setMotorcycleToDelete] = useState(null);
@@ -23,7 +26,10 @@ function Motorcycles() {
   const canDelete = user.role === "ADMIN";
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 350);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -32,13 +38,19 @@ function Motorcycles() {
     setError("");
 
     try {
-      setMotorcycles(await getMotorcycles(debouncedSearch));
+      const data = await getMotorcycles({ search: debouncedSearch, page });
+      if (page > data.pagination.totalPages) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+      setMotorcycles(data.motorcycles);
+      setPagination(data.pagination);
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudieron cargar las motos"));
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, page]);
 
   useEffect(() => {
     loadMotorcycles();
@@ -118,7 +130,7 @@ function Motorcycles() {
             <button type="button" onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>
           )}
         </div>
-        <span className="motorcycle-count">{loading ? "Cargando..." : `${motorcycles.length} ${motorcycles.length === 1 ? "moto" : "motos"}`}</span>
+        <span className="motorcycle-count">{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "moto" : "motos"}`}</span>
       </div>
 
       <div className="motorcycles-table-wrap">
@@ -174,6 +186,8 @@ function Motorcycles() {
           </div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="motos" />}
 
       {modalOpen && (
         <MotorcycleFormModal

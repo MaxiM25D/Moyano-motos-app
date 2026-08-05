@@ -1,5 +1,6 @@
 import { ClientRepository } from "../repositories/client.repository.js";
 import { HttpError } from "../utils/httpError.js";
+import { buildPagination, parsePagination } from "../utils/pagination.js";
 
 const clientRepository = new ClientRepository();
 
@@ -12,8 +13,15 @@ const validateId = (id) => {
 };
 
 export class ClientService {
-  getClients(search) {
-    return clientRepository.getClients(search);
+  async getClients(query = {}) {
+    const { page, pageSize, skip } = parsePagination(query);
+    const { clients, total } = await clientRepository.getClients({
+      search: query.search?.trim(),
+      skip,
+      take: pageSize
+    });
+
+    return { clients, pagination: buildPagination(total, page, pageSize) };
   }
 
   async getClientById(id) {

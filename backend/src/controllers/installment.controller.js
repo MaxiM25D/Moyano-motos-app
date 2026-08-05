@@ -17,9 +17,12 @@ export const createInstallment = async (req, res) => {
 
 export const getInstallments = async (req, res) => {
   try {
-    const installments = await installmentService.getInstallments();
+    const { installments, pagination, filterCounts, summary } = await installmentService.getInstallments(req.query);
     return sendSuccess(res, "Cuotas obtenidas", {
-      installments: installments.map((installment) => new InstallmentDTO(installment))
+      installments: installments.map((installment) => new InstallmentDTO(installment)),
+      pagination,
+      filterCounts,
+      summary
     });
   } catch (error) {
     return sendError(res, error);

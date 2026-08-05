@@ -1,6 +1,7 @@
 import { SaleRepository } from "../repositories/sale.repository.js";
 import { addCalendarMonths } from "../utils/date.js";
 import { HttpError } from "../utils/httpError.js";
+import { buildPagination, parsePagination } from "../utils/pagination.js";
 
 const saleRepository = new SaleRepository();
 const CENTS_FACTOR = 100;
@@ -17,8 +18,15 @@ const validateId = (id, label) => {
 };
 
 export class SaleService {
-  getSales() {
-    return saleRepository.getSales();
+  async getSales(query = {}) {
+    const { page, pageSize, skip } = parsePagination(query);
+    const { sales, total } = await saleRepository.getSales({
+      search: query.search?.trim(),
+      skip,
+      take: pageSize
+    });
+
+    return { sales, pagination: buildPagination(total, page, pageSize) };
   }
 
   async getSaleById(id) {

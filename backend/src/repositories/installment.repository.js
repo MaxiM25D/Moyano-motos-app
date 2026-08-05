@@ -43,11 +43,59 @@ const normalizePendingDueDates = async (tx, saleId) => {
 };
 
 export class InstallmentRepository {
-  getInstallments() {
-    return prisma.installment.findMany({
-      include: installmentInclude,
-      orderBy: [{ dueDate: "asc" }, { number: "asc" }]
-    });
+  async getInstallments({ where, orderBy, skip, take, searchWhere, today, upcomingUntil }) {
+    const withSearch = (condition = {}) => searchWhere
+      ? { AND: [searchWhere, condition] }
+      : condition;
+
+    const [installments, total, allCount, pendingCount, upcomingCount, overdueCount, paidCount, pendingAmounts, overdueAmounts] = await prisma.$transaction([
+      prisma.installment.findMany({
+        where,
+        include: installmentInclude,
+        skip,
+        take,
+        orderBy
+      }),
+      prisma.installment.count({ where }),
+      prisma.installment.count({ where: withSearch() }),
+      prisma.installment.count({ where: withSearch({ status: "PENDING" }) }),
+      prisma.installment.count({
+        where: withSearch({ status: "PENDING", dueDate: { gte: today, lte: upcomingUntil } })
+      }),
+      prisma.installment.count({
+        where: withSearch({ status: "PENDING", dueDate: { lt: today } })
+      }),
+      prisma.installment.count({ where: withSearch({ status: "PAID" }) }),
+      prisma.installment.aggregate({
+        where: { status: "PENDING" },
+        _count: true,
+        _sum: { amount: true }
+      }),
+      prisma.installment.aggregate({
+        where: { status: "PENDING", dueDate: { lt: today } },
+        _count: true,
+        _sum: { amount: true }
+      })
+    ]);
+
+    return {
+      installments,
+      total,
+      filterCounts: {
+        ALL: allCount,
+        PENDING: pendingCount,
+        UPCOMING: upcomingCount,
+        OVERDUE: overdueCount,
+        PAID: paidCount
+      },
+      summary: {
+        pendingCount: pendingAmounts._count,
+        pendingAmount: pendingAmounts._sum.amount || 0,
+        overdueCount: overdueAmounts._count,
+        overdueAmount: overdueAmounts._sum.amount || 0,
+        paidCount: await prisma.installment.count({ where: { status: "PAID" } })
+      }
+    };
   }
 
   getPendingInstallments() {

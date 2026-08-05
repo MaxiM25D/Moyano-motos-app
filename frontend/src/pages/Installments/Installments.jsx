@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiSliders, FiX } from "react-icons/fi";
 import InstallmentFormModal from "../../components/installments/InstallmentFormModal.jsx";
 import PaymentModal from "../../components/installments/PaymentModal.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
 import { getInstallments } from "../../services/installmentService.js";
@@ -33,11 +34,6 @@ const daysUntilDue = (installment) => Math.round(
 const isOverdue = (installment) =>
   installment.status === "PENDING" && daysUntilDue(installment) < 0;
 
-const isUpcoming = (installment) => {
-  const days = daysUntilDue(installment);
-  return installment.status === "PENDING" && days >= 0 && days <= 30;
-};
-
 const getUrgency = (installment) => {
   if (installment.status !== "PENDING") return { className: "", label: "" };
 
@@ -53,24 +49,17 @@ const getUrgency = (installment) => {
   return { className: "", label: "" };
 };
 
-const priorityFor = (installment) => {
-  if (installment.status === "PENDING") {
-    const days = daysUntilDue(installment);
-    if (days < 0) return 0;
-    if (days <= 7) return 1;
-    if (days <= 30) return 2;
-    return 3;
-  }
-  if (installment.status === "PAID") return 4;
-  return 5;
-};
-
 function Installments() {
   const { user } = useAuth();
   const [installments, setInstallments] = useState([]);
   const [filter, setFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("PRIORITY");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
+  const [metrics, setMetrics] = useState({ pendingCount: 0, pendingAmount: 0, overdueCount: 0, overdueAmount: 0, paidCount: 0 });
+  const [filterCounts, setFilterCounts] = useState({ ALL: 0, PENDING: 0, UPCOMING: 0, OVERDUE: 0, PAID: 0 });
   const [selectedInstallment, setSelectedInstallment] = useState(null);
   const [installmentToEdit, setInstallmentToEdit] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,17 +68,38 @@ function Installments() {
   const canCollect = ["ADMIN", "COLLECTOR"].includes(user.role);
   const canManagePlan = user.role === "ADMIN";
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadInstallments = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setInstallments(await getInstallments());
+      const data = await getInstallments({
+        search: debouncedSearch,
+        filter,
+        sort: sortBy,
+        page
+      });
+      if (page > data.pagination.totalPages) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+      setInstallments(data.installments);
+      setPagination(data.pagination);
+      setMetrics(data.summary);
+      setFilterCounts(data.filterCounts);
     } catch (requestError) {
       setError(getApiError(requestError, "No se pudieron cargar las cuotas"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, filter, page, sortBy]);
 
   useEffect(() => {
     loadInstallments();
@@ -100,70 +110,6 @@ function Installments() {
     const timer = setTimeout(() => setNotice(""), 4000);
     return () => clearTimeout(timer);
   }, [notice]);
-
-  const metrics = useMemo(() => {
-    const pending = installments.filter((item) => item.status === "PENDING");
-    const overdue = pending.filter(isOverdue);
-    const paid = installments.filter((item) => item.status === "PAID");
-    return {
-      pendingCount: pending.length,
-      pendingAmount: pending.reduce((sum, item) => sum + Number(item.amount), 0),
-      overdueCount: overdue.length,
-      overdueAmount: overdue.reduce((sum, item) => sum + Number(item.amount), 0),
-      paidCount: paid.length
-    };
-  }, [installments]);
-
-  const filterCounts = useMemo(() => ({
-    ALL: installments.length,
-    PENDING: installments.filter((item) => item.status === "PENDING").length,
-    UPCOMING: installments.filter(isUpcoming).length,
-    OVERDUE: installments.filter(isOverdue).length,
-    PAID: installments.filter((item) => item.status === "PAID").length
-  }), [installments]);
-
-  const visibleInstallments = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    const filtered = installments.filter((item) => {
-      const matchesFilter = filter === "ALL"
-        || (filter === "UPCOMING" ? isUpcoming(item) : false)
-        || (filter === "OVERDUE" ? isOverdue(item) : item.status === filter);
-      const matchesSearch = !term || [
-        item.sale?.client?.name,
-        item.sale?.client?.dni,
-        item.sale?.motorcycle?.brand,
-        item.sale?.motorcycle?.model,
-        item.sale?.motorcycle?.domain,
-        item.sale?.saleNumber,
-        item.saleId
-      ].some((value) => String(value || "").toLowerCase().includes(term));
-      return matchesFilter && matchesSearch;
-    });
-
-    return filtered.sort((first, second) => {
-      if (sortBy === "CLIENT") {
-        return String(first.sale?.client?.name || "").localeCompare(
-          String(second.sale?.client?.name || ""),
-          "es"
-        ) || new Date(first.dueDate) - new Date(second.dueDate);
-      }
-      if (sortBy === "AMOUNT_DESC") {
-        return Number(second.amount) - Number(first.amount)
-          || new Date(first.dueDate) - new Date(second.dueDate);
-      }
-      if (sortBy === "DUE_DATE") {
-        return new Date(first.dueDate) - new Date(second.dueDate);
-      }
-
-      const priorityDifference = priorityFor(first) - priorityFor(second);
-      if (priorityDifference !== 0) return priorityDifference;
-      if (first.status === "PAID" && second.status === "PAID") {
-        return new Date(second.paidAt || second.payment?.paidAt || 0)
-          - new Date(first.paidAt || first.payment?.paidAt || 0);
-      }
-      return new Date(first.dueDate) - new Date(second.dueDate);
-    });
-  }, [filter, installments, search, sortBy]);
 
   const handlePaid = async (paidInstallment) => {
     setSelectedInstallment(null);
@@ -194,13 +140,13 @@ function Installments() {
 
       <div className="installments-controls">
         <div className="installment-filters" aria-label="Filtrar cuotas">
-          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => setFilter(item.value)}><span>{item.label}</span><small>{filterCounts[item.value]}</small></button>)}
+          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => { setFilter(item.value); setPage(1); }}><span>{item.label}</span><small>{filterCounts[item.value]}</small></button>)}
         </div>
         <div className="installments-control-right">
           <label className="installments-sort">
             <FiSliders />
             <span className="sr-only">Ordenar cuotas</span>
-            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Ordenar cuotas">
+            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setPage(1); }} aria-label="Ordenar cuotas">
               <option value="PRIORITY">Prioridad</option>
               <option value="DUE_DATE">Vencimiento</option>
               <option value="CLIENT">Cliente</option>
@@ -214,11 +160,11 @@ function Installments() {
       <div className="installments-table-wrap">
         {loading ? (
           <div className="installments-loading"><span /><span /><span /><span /></div>
-        ) : visibleInstallments.length ? (
+        ) : installments.length ? (
           <table className="installments-table">
             <thead><tr><th>Cliente</th><th>Moto</th><th>Cuota</th><th>Vencimiento</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
-              {visibleInstallments.map((item) => {
+              {installments.map((item) => {
                 const overdue = isOverdue(item);
                 const urgency = getUrgency(item);
                 const visualStatus = overdue ? "OVERDUE" : item.status;
@@ -253,6 +199,8 @@ function Installments() {
           <div className="installments-empty"><FiCreditCard /><strong>No hay cuotas para mostrar</strong><span>Cambia el filtro o la busqueda seleccionada.</span></div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" />}
 
       {selectedInstallment && <PaymentModal installment={selectedInstallment} onClose={() => setSelectedInstallment(null)} onPaid={handlePaid} />}
       {installmentToEdit && <InstallmentFormModal installment={installmentToEdit} onClose={() => setInstallmentToEdit(null)} onSaved={handleUpdated} />}

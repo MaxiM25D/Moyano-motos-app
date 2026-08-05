@@ -14,23 +14,31 @@ const normalizeOptionalFields = (data) => {
 };
 
 export class MotorcycleRepository {
-  getMotorcycles(search) {
-    const where = search
-      ? {
-          OR: [
+  async getMotorcycles({ search, available, skip, take }) {
+    const where = {
+      ...(search ? {
+        OR: [
             { brand: { contains: search, mode: "insensitive" } },
             { model: { contains: search, mode: "insensitive" } },
             { domain: { contains: search, mode: "insensitive" } },
             { chassisNumber: { contains: search, mode: "insensitive" } },
             { engineNumber: { contains: search, mode: "insensitive" } }
-          ]
-        }
-      : undefined;
+        ]
+      } : {}),
+      ...(available ? { sale: { is: null } } : {})
+    };
 
-    return prisma.motorcycle.findMany({
-      where,
-      orderBy: { createdAt: "desc" }
-    });
+    const [motorcycles, total] = await prisma.$transaction([
+      prisma.motorcycle.findMany({
+        where,
+        skip,
+        take,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }]
+      }),
+      prisma.motorcycle.count({ where })
+    ]);
+
+    return { motorcycles, total };
   }
 
   getMotorcycleById(id) {

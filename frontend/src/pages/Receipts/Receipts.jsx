@@ -3,7 +3,7 @@ import { FiEye, FiFilePlus, FiFileText, FiPrinter, FiSearch, FiX } from "react-i
 import ReceiptViewer from "../../components/receipts/ReceiptViewer.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getApiError } from "../../services/api.js";
-import { getInstallments } from "../../services/installmentService.js";
+import { getAllPaidInstallments } from "../../services/installmentService.js";
 import { createReceipt, getReceipts } from "../../services/receiptService.js";
 import "./Receipts.css";
 
@@ -27,7 +27,10 @@ function Receipts() {
     setLoading(true);
     setError("");
     try {
-      const [receiptList, installmentList] = await Promise.all([getReceipts(), getInstallments()]);
+      const [receiptList, installmentList] = await Promise.all([
+        getReceipts(),
+        getAllPaidInstallments()
+      ]);
       setReceipts(receiptList);
       setInstallments(installmentList);
     } catch (requestError) {

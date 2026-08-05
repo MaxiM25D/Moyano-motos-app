@@ -1,7 +1,7 @@
 import { prisma } from "../config/db/prisma.client.js";
 
 export class ClientRepository {
-  getClients(search) {
+  async getClients({ search, skip, take }) {
     const where = search
       ? {
           OR: [
@@ -12,10 +12,17 @@ export class ClientRepository {
         }
       : undefined;
 
-    return prisma.client.findMany({
-      where,
-      orderBy: { createdAt: "desc" }
-    });
+    const [clients, total] = await prisma.$transaction([
+      prisma.client.findMany({
+        where,
+        skip,
+        take,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }]
+      }),
+      prisma.client.count({ where })
+    ]);
+
+    return { clients, total };
   }
 
   getClientById(id) {

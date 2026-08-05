@@ -26,11 +26,33 @@ const saleInclude = {
 };
 
 export class SaleRepository {
-  getSales() {
-    return prisma.sale.findMany({
-      include: saleInclude,
-      orderBy: { saleNumber: "desc" }
-    });
+  async getSales({ search, skip, take }) {
+    const numericSearch = Number(search);
+    const where = search ? {
+      OR: [
+        ...(Number.isInteger(numericSearch) && numericSearch > 0
+          ? [{ id: numericSearch }, { saleNumber: numericSearch }]
+          : []),
+        { client: { name: { contains: search, mode: "insensitive" } } },
+        { client: { dni: { contains: search } } },
+        { motorcycle: { brand: { contains: search, mode: "insensitive" } } },
+        { motorcycle: { model: { contains: search, mode: "insensitive" } } },
+        { motorcycle: { domain: { contains: search, mode: "insensitive" } } }
+      ]
+    } : undefined;
+
+    const [sales, total] = await prisma.$transaction([
+      prisma.sale.findMany({
+        where,
+        include: saleInclude,
+        skip,
+        take,
+        orderBy: [{ createdAt: "desc" }, { saleNumber: "desc" }]
+      }),
+      prisma.sale.count({ where })
+    ]);
+
+    return { sales, total };
   }
 
   getSaleById(id) {

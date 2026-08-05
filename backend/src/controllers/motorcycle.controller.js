@@ -6,9 +6,10 @@ const motorcycleService = new MotorcycleService();
 
 export const getMotorcycles = async (req, res) => {
   try {
-    const motorcycles = await motorcycleService.getMotorcycles(req.query.search);
+    const { motorcycles, pagination } = await motorcycleService.getMotorcycles(req.query);
     return sendSuccess(res, "Motos obtenidas", {
-      motorcycles: motorcycles.map((motorcycle) => new MotorcycleDTO(motorcycle))
+      motorcycles: motorcycles.map((motorcycle) => new MotorcycleDTO(motorcycle)),
+      pagination
     });
   } catch (error) {
     return sendError(res, error);
