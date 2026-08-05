@@ -57,6 +57,12 @@ const getDueAlert = (installment) => {
   };
 };
 
+const installmentLink = (filter, installment) => {
+  const params = new URLSearchParams({ filter });
+  if (installment?.sale?.client?.name) params.set("search", installment.sale.client.name);
+  return `/cuotas?${params.toString()}`;
+};
+
 const emptyDashboard = {
   paid: { count: 0, amount: 0, clients: { paid: 0, active: 0 } },
   pending: { count: 0, amount: 0 },
@@ -116,7 +122,8 @@ function Dashboard() {
       )}
 
       <div className="metrics-grid" aria-busy={loading}>
-        <article className="metric-card paid-card">
+        <Link className="metric-card metric-card-link paid-card" to="/cuotas?filter=PAID" aria-label="Ver cuotas pagadas">
+          <FiArrowRight className="metric-card-arrow" />
           <span className="metric-icon green"><FiCheckCircle /></span>
           <div className="metric-content">
             <p>Cuotas pagadas este mes</p>
@@ -133,9 +140,10 @@ function Dashboard() {
               <b>{loading ? "--" : money.format(Number(data.paid.amount))}</b>
             </div>
           </div>
-        </article>
+        </Link>
 
-        <article className="metric-card pending-card">
+        <Link className="metric-card metric-card-link pending-card" to="/cuotas?filter=PENDING" aria-label="Ver cuotas pendientes">
+          <FiArrowRight className="metric-card-arrow" />
           <span className="metric-icon blue"><FiCreditCard /></span>
           <div className="metric-content">
             <p>Cuotas pendientes del mes</p>
@@ -148,12 +156,13 @@ function Dashboard() {
               <b>{loading ? "--" : money.format(Number(data.pending.amount))}</b>
             </div>
           </div>
-        </article>
+        </Link>
 
-        <article className="metric-card overdue-card">
+        <Link className="metric-card metric-card-link overdue-card" to="/cuotas?filter=OVERDUE" aria-label="Ver cuotas vencidas">
+          <FiArrowRight className="metric-card-arrow" />
           <span className="metric-icon red"><FiAlertCircle /></span>
           <div className="metric-content">
-            <p>Cuotas vencidas este mes</p>
+            <p>Cuotas vencidas</p>
             <div className="metric-count">
               <strong>{loading ? "--" : data.overdue.count}</strong>
               <span>cuotas atrasadas</span>
@@ -163,7 +172,7 @@ function Dashboard() {
               <b>{loading ? "--" : money.format(Number(data.overdue.amount))}</b>
             </div>
           </div>
-        </article>
+        </Link>
       </div>
 
       <div className="dashboard-grid">
@@ -179,7 +188,7 @@ function Dashboard() {
               {data.upcomingInstallments.map((installment) => {
                 const dueAlert = getDueAlert(installment);
                 return (
-                  <div className={`installment-row due-${dueAlert.className}`} key={installment.id}>
+                  <Link className={`installment-row installment-row-link due-${dueAlert.className}`} to={installmentLink("PENDING", installment)} key={installment.id}>
                     <span className="date-box">
                       <strong>{new Date(installment.dueDate).getUTCDate()}</strong>
                       <small>{monthFormatter.format(new Date(installment.dueDate)).replace(".", "")}</small>
@@ -190,7 +199,7 @@ function Dashboard() {
                       <small className={`due-alert ${dueAlert.className}`}><FiBell />{dueAlert.label}</small>
                     </div>
                     <strong className="installment-amount">{money.format(Number(installment.amount))}</strong>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -201,7 +210,8 @@ function Dashboard() {
 
         <article className="data-panel overdue-panel">
           <header className="panel-header">
-            <div><h2>Atencion requerida</h2><p>Cuotas vencidas durante el mes actual</p></div>
+            <div><h2>Atencion requerida</h2><p>Cuotas actualmente vencidas</p></div>
+            <Link className="text-button" to="/cuotas?filter=OVERDUE">Ver todas <FiArrowRight /></Link>
           </header>
           {loading ? (
             <div className="table-loading"><span /><span /><span /></div>
@@ -210,13 +220,13 @@ function Dashboard() {
               {data.attentionRequired.map((installment) => {
                 const days = Math.max(1, Math.abs(daysUntilDue(installment)));
                 return (
-                  <div className="overdue-row" key={installment.id}>
+                  <Link className="overdue-row overdue-row-link" to={installmentLink("OVERDUE", installment)} key={installment.id}>
                     <div>
                       <strong>{installment.sale?.client?.name || `Venta #${installment.sale?.saleNumber || installment.saleId}`}</strong>
                       <span>{days} {days === 1 ? "dia" : "dias"} de atraso</span>
                     </div>
                     <strong>{money.format(Number(installment.amount))}</strong>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

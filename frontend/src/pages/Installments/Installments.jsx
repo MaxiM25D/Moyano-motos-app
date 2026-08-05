@@ -4,6 +4,7 @@ import InstallmentFormModal from "../../components/installments/InstallmentFormM
 import PaymentModal from "../../components/installments/PaymentModal.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useSearchParams } from "react-router-dom";
 import { getApiError } from "../../services/api.js";
 import { getInstallments } from "../../services/installmentService.js";
 import "./Installments.css";
@@ -51,11 +52,15 @@ const getUrgency = (installment) => {
 
 function Installments() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const initialFilter = filters.some((item) => item.value === searchParams.get("filter"))
+    ? searchParams.get("filter")
+    : "ALL";
   const [installments, setInstallments] = useState([]);
-  const [filter, setFilter] = useState("ALL");
+  const [filter, setFilter] = useState(initialFilter);
   const [sortBy, setSortBy] = useState("PRIORITY");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get("search") || "");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [metrics, setMetrics] = useState({ pendingCount: 0, pendingAmount: 0, overdueCount: 0, overdueAmount: 0, paidCount: 0 });
