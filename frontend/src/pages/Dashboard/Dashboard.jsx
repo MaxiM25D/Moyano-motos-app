@@ -162,7 +162,7 @@ function Dashboard() {
           <FiArrowRight className="metric-card-arrow" />
           <span className="metric-icon red"><FiAlertCircle /></span>
           <div className="metric-content">
-            <p>Cuotas vencidas</p>
+            <p>Cuotas vencidas este mes</p>
             <div className="metric-count">
               <strong>{loading ? "--" : data.overdue.count}</strong>
               <span>cuotas atrasadas</span>
@@ -210,7 +210,7 @@ function Dashboard() {
 
         <article className="data-panel overdue-panel">
           <header className="panel-header">
-            <div><h2>Atencion requerida</h2><p>Cuotas actualmente vencidas</p></div>
+            <div><h2>Atencion requerida</h2><p>Cuotas vencidas durante el mes actual</p></div>
             <Link className="text-button" to="/cuotas?filter=OVERDUE">Ver todas <FiArrowRight /></Link>
           </header>
           {loading ? (

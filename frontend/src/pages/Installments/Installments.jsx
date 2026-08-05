@@ -10,7 +10,12 @@ import { getInstallments } from "../../services/installmentService.js";
 import "./Installments.css";
 
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
-const date = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+const date = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "UTC"
+});
 
 const filters = [
   { value: "ALL", label: "Todas" },
@@ -21,15 +26,24 @@ const filters = [
 ];
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
 
-const startOfDay = (value) => {
-  const result = new Date(value);
-  result.setHours(0, 0, 0, 0);
-  return result;
+const argentinaDateParts = (value) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ARGENTINA_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(value);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return [Number(values.year), Number(values.month), Number(values.day)];
 };
 
+const dueDateParts = (value) => String(value).slice(0, 10).split("-").map(Number);
+const calendarDay = ([year, month, day]) => Date.UTC(year, month - 1, day);
+
 const daysUntilDue = (installment) => Math.round(
-  (startOfDay(installment.dueDate) - startOfDay(new Date())) / DAY_IN_MS
+  (calendarDay(dueDateParts(installment.dueDate)) - calendarDay(argentinaDateParts(new Date()))) / DAY_IN_MS
 );
 
 const isOverdue = (installment) =>

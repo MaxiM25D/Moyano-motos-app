@@ -36,7 +36,10 @@ export class ReportRepository {
       prisma.installment.aggregate({
         where: {
           status: "PENDING",
-          dueDate: { lt: today }
+          dueDate: {
+            gte: from,
+            lt: today
+          }
         },
         _sum: { amount: true },
         _count: { id: true }
@@ -53,7 +56,10 @@ export class ReportRepository {
       prisma.installment.findMany({
         where: {
           status: "PENDING",
-          dueDate: { lt: today }
+          dueDate: {
+            gte: from,
+            lt: today
+          }
         },
         include: installmentSaleInclude,
         orderBy: { dueDate: "asc" },
