@@ -178,7 +178,7 @@ function Installments() {
 
       {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" />}
 
-      <div className="installments-table-wrap">
+      <div className="installments-table-wrap" id="installments-list">
         {loading ? (
           <div className="installments-loading"><span /><span /><span /><span /></div>
         ) : installments.length ? (
@@ -220,6 +220,8 @@ function Installments() {
           <div className="installments-empty"><FiCreditCard /><strong>No hay cuotas para mostrar</strong><span>Cambia el filtro o la busqueda seleccionada.</span></div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" scrollTargetId="installments-list" />}
 
       {selectedInstallment && <PaymentModal installment={selectedInstallment} onClose={() => setSelectedInstallment(null)} onPaid={handlePaid} />}
       {installmentToEdit && <InstallmentFormModal installment={installmentToEdit} onClose={() => setInstallmentToEdit(null)} onSaved={handleUpdated} />}

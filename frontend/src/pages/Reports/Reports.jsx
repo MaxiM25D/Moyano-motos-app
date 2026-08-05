@@ -150,7 +150,7 @@ function Reports() {
       <article className="report-table-panel">
         <header><div><h2>Detalle de cobranzas</h2><p>Pagos dentro del rango seleccionado</p></div><span>{collections?.totalPayments || 0} movimientos</span></header>
         {!loading && <Pagination pagination={collections?.pagination} onPageChange={setCollectionPage} label="cobranzas" />}
-        <div className="report-table-scroll">
+        <div className="report-table-scroll" id="collections-report-list">
           {loading ? <div className="report-table-loading"><span /><span /><span /></div> : collections?.payments?.length ? (
             <table className="report-table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Cuota</th><th>Medio</th><th>Cobrador</th><th>Importe</th></tr></thead><tbody>
               {collections.payments.map((payment) => <tr key={payment.id}>
@@ -164,12 +164,13 @@ function Reports() {
             </tbody></table>
           ) : <div className="report-empty"><FiDollarSign /><strong>Sin cobranzas en el periodo</strong><span>Selecciona otro rango de fechas para consultar.</span></div>}
         </div>
+        {!loading && <Pagination pagination={collections?.pagination} onPageChange={setCollectionPage} label="cobranzas" scrollTargetId="collections-report-list" />}
       </article>
 
       <article className="report-table-panel overdue-report-panel">
         <header><div><h2>Cartera vencida</h2><p>Cuotas pendientes con fecha de vencimiento superada</p></div><span>{overdue.totalInstallments || 0} cuotas</span></header>
         {!loading && <Pagination pagination={overdue.pagination} onPageChange={setOverduePage} label="cuotas vencidas" />}
-        <div className="report-table-scroll">
+        <div className="report-table-scroll" id="overdue-report-list">
           {loading ? <div className="report-table-loading"><span /><span /><span /></div> : overdue.installments.length ? (
             <table className="report-table overdue-report-table"><thead><tr><th>Cliente</th><th>Contacto</th><th>Moto</th><th>Cuota</th><th>Vencimiento</th><th>Atraso</th><th>Importe</th></tr></thead><tbody>
               {overdue.installments.map((item) => {
@@ -187,6 +188,7 @@ function Reports() {
             </tbody></table>
           ) : <div className="report-empty success"><FiCreditCard /><strong>Sin cuotas vencidas</strong><span>La cartera se encuentra al dia.</span></div>}
         </div>
+        {!loading && <Pagination pagination={overdue.pagination} onPageChange={setOverduePage} label="cuotas vencidas" scrollTargetId="overdue-report-list" />}
       </article>
     </section>
   );

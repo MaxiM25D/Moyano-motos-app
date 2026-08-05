@@ -110,7 +110,7 @@ function Receipts() {
 
       {!loading && <Pagination pagination={pagination} onPageChange={setPage} label={tab === "RECEIPTS" ? "recibos" : "pagos sin recibo"} />}
 
-      <div className="receipts-table-wrap">
+      <div className="receipts-table-wrap" id="receipts-list">
         {loading ? <div className="receipts-loading"><span /><span /><span /><span /></div> : visibleRows.length ? (
           tab === "RECEIPTS" ? (
             <table className="receipts-table"><thead><tr><th>Recibo</th><th>Cliente</th><th>Concepto</th><th>Fecha</th><th>Importe</th><th>Impresion</th><th><span className="sr-only">Acciones</span></th></tr></thead><tbody>
@@ -138,6 +138,8 @@ function Receipts() {
           )
         ) : <div className="receipts-empty"><FiFileText /><strong>{tab === "RECEIPTS" ? "No hay recibos emitidos" : "No hay pagos pendientes de recibo"}</strong><span>{search ? "Proba con otra busqueda." : tab === "RECEIPTS" ? "Los recibos generados apareceran aqui." : "Todos los pagos ya tienen su comprobante."}</span></div>}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label={tab === "RECEIPTS" ? "recibos" : "pagos sin recibo"} scrollTargetId="receipts-list" />}
 
       {selectedReceipt && <ReceiptViewer receipt={selectedReceipt} canPrint={canManage} onClose={() => setSelectedReceipt(null)} onPrinted={handlePrinted} />}
     </section>

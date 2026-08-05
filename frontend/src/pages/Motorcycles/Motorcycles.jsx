@@ -135,7 +135,7 @@ function Motorcycles() {
 
       {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="motos" />}
 
-      <div className="motorcycles-table-wrap">
+      <div className="motorcycles-table-wrap" id="motorcycles-list">
         {loading ? (
           <div className="motorcycles-loading"><span /><span /><span /><span /></div>
         ) : motorcycles.length ? (
@@ -188,6 +188,8 @@ function Motorcycles() {
           </div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="motos" scrollTargetId="motorcycles-list" />}
 
       {modalOpen && (
         <MotorcycleFormModal

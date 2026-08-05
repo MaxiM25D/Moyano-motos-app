@@ -1,12 +1,20 @@
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./Pagination.css";
 
-function Pagination({ pagination, onPageChange, label = "registros" }) {
+function Pagination({ pagination, onPageChange, label = "registros", scrollTargetId }) {
   const { page = 1, pageSize = 20, total = 0, totalPages = 1 } = pagination || {};
   if (!total) return null;
 
   const first = (page - 1) * pageSize + 1;
   const last = Math.min(page * pageSize, total);
+  const changePage = (nextPage) => {
+    onPageChange(nextPage);
+    if (scrollTargetId) {
+      requestAnimationFrame(() => {
+        document.getElementById(scrollTargetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  };
 
   return (
     <nav className="pagination" aria-label={`Paginación de ${label}`}>
@@ -14,7 +22,7 @@ function Pagination({ pagination, onPageChange, label = "registros" }) {
       <div>
         <button
           type="button"
-          onClick={() => onPageChange(page - 1)}
+          onClick={() => changePage(page - 1)}
           disabled={page <= 1}
           aria-label="Página anterior"
           title="Página anterior"
@@ -24,7 +32,7 @@ function Pagination({ pagination, onPageChange, label = "registros" }) {
         <strong>Página {page} de {totalPages}</strong>
         <button
           type="button"
-          onClick={() => onPageChange(page + 1)}
+          onClick={() => changePage(page + 1)}
           disabled={page >= totalPages}
           aria-label="Página siguiente"
           title="Página siguiente"

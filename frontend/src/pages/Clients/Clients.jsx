@@ -139,7 +139,7 @@ function Clients() {
 
       {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="clientes" />}
 
-      <div className="clients-table-wrap">
+      <div className="clients-table-wrap" id="clients-list">
         {loading ? (
           <div className="clients-loading"><span /><span /><span /><span /></div>
         ) : clients.length ? (
@@ -190,6 +190,8 @@ function Clients() {
           </div>
         )}
       </div>
+
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="clientes" scrollTargetId="clients-list" />}
 
       {modalOpen && (
         <ClientFormModal
