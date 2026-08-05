@@ -129,6 +129,8 @@ function Sales() {
         <span>{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "venta" : "ventas"}`}</span>
       </div>
 
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="ventas" />}
+
       <div className="sales-table-wrap">
         {loading ? (
           <div className="sales-loading"><span /><span /><span /><span /></div>
@@ -162,8 +164,6 @@ function Sales() {
           <div className="sales-empty"><FiFileText /><strong>{search ? "No encontramos coincidencias" : "Todavia no hay ventas"}</strong><span>{search ? "Proba con otro cliente, DNI o moto." : "Las operaciones financiadas apareceran en esta lista."}</span>{!search && canCreate && <button className="primary-button" onClick={() => setCreateOpen(true)}><FiPlus />Registrar venta</button>}</div>
         )}
       </div>
-
-      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="ventas" />}
 
       {createOpen && <SaleFormModal onClose={() => setCreateOpen(false)} onSaved={handleCreated} />}
       {selectedSale && <SaleDetailModal sale={selectedSale} canManagePlan={canDelete} canCollect={canCollect} onPlanChanged={handlePlanChanged} onClose={() => setSelectedSale(null)} />}

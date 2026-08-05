@@ -137,6 +137,8 @@ function Clients() {
         <span className="client-count">{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "cliente" : "clientes"}`}</span>
       </div>
 
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="clientes" />}
+
       <div className="clients-table-wrap">
         {loading ? (
           <div className="clients-loading"><span /><span /><span /><span /></div>
@@ -188,8 +190,6 @@ function Clients() {
           </div>
         )}
       </div>
-
-      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="clientes" />}
 
       {modalOpen && (
         <ClientFormModal

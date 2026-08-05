@@ -133,6 +133,8 @@ function Motorcycles() {
         <span className="motorcycle-count">{loading ? "Cargando..." : `${pagination.total} ${pagination.total === 1 ? "moto" : "motos"}`}</span>
       </div>
 
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="motos" />}
+
       <div className="motorcycles-table-wrap">
         {loading ? (
           <div className="motorcycles-loading"><span /><span /><span /><span /></div>
@@ -186,8 +188,6 @@ function Motorcycles() {
           </div>
         )}
       </div>
-
-      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="motos" />}
 
       {modalOpen && (
         <MotorcycleFormModal

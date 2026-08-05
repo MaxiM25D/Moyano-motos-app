@@ -157,6 +157,8 @@ function Installments() {
         </div>
       </div>
 
+      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" />}
+
       <div className="installments-table-wrap">
         {loading ? (
           <div className="installments-loading"><span /><span /><span /><span /></div>
@@ -199,8 +201,6 @@ function Installments() {
           <div className="installments-empty"><FiCreditCard /><strong>No hay cuotas para mostrar</strong><span>Cambia el filtro o la busqueda seleccionada.</span></div>
         )}
       </div>
-
-      {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" />}
 
       {selectedInstallment && <PaymentModal installment={selectedInstallment} onClose={() => setSelectedInstallment(null)} onPaid={handlePaid} />}
       {installmentToEdit && <InstallmentFormModal installment={installmentToEdit} onClose={() => setInstallmentToEdit(null)} onSaved={handleUpdated} />}
