@@ -1,4 +1,5 @@
 import { InstallmentRepository } from "../repositories/installment.repository.js";
+import { getCurrentArgentinaMonthRange } from "../utils/argentinaDate.js";
 import { HttpError } from "../utils/httpError.js";
 import { distributeCents } from "../utils/paymentAdjustments.js";
 import { buildPagination, parsePagination } from "../utils/pagination.js";
@@ -30,10 +31,14 @@ export class InstallmentService {
       ? query.sort
       : "PRIORITY";
     const search = query.search?.trim();
+    const period = query.period === "CURRENT_MONTH" ? query.period : undefined;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const upcomingUntil = new Date(today);
     upcomingUntil.setDate(upcomingUntil.getDate() + 30);
+    const currentMonthRange = period === "CURRENT_MONTH"
+      ? getCurrentArgentinaMonthRange()
+      : undefined;
 
     const searchWhere = search ? {
       OR: [
@@ -55,7 +60,12 @@ export class InstallmentService {
         : filter === "OVERDUE"
           ? { status: "PENDING", dueDate: { lt: today } }
           : filter === "PAID"
-            ? { status: "PAID" }
+            ? period === "CURRENT_MONTH"
+              ? {
+                status: "PAID",
+                payment: { paidAt: { gte: currentMonthRange.from, lt: currentMonthRange.to } }
+              }
+              : { status: "PAID" }
             : {};
     const where = searchWhere ? { AND: [searchWhere, filterWhere] } : filterWhere;
 
@@ -76,6 +86,10 @@ export class InstallmentService {
       today,
       upcomingUntil
     });
+
+    if (period === "CURRENT_MONTH" && filter === "PAID") {
+      result.filterCounts.PAID = result.total;
+    }
 
     return {
       ...result,

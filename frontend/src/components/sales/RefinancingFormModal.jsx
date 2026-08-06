@@ -131,7 +131,7 @@ function RefinancingFormModal({ sale, onClose, onSaved }) {
               </label>
               <label>
                 <span>Interes de refinanciacion (%) *</span>
-                <input name="interestRate" type="number" min="0" max="100" step="0.01" value={form.interestRate} onChange={handleChange} required />
+                <input name="interestRate" type="number" min="0" max="99999.99" step="0.01" value={form.interestRate} onChange={handleChange} required />
               </label>
               <label>
                 <span>Nueva cantidad de cuotas *</span>

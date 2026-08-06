@@ -144,7 +144,7 @@ function PaymentModal({ installment, onClose, onPaid }) {
               </label>
               <label>
                 <span>Interes aplicado (%)</span>
-                <input type="number" name="interestRate" value={form.interestRate} onChange={handleChange} min="0" max="100" step="0.01" inputMode="decimal" />
+                <input type="number" name="interestRate" value={form.interestRate} onChange={handleChange} min="0" max="99999.99" step="0.01" inputMode="decimal" />
               </label>
               <label>
                 <span>Importe recibido *</span>

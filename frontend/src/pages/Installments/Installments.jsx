@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiSliders, FiX } from "react-icons/fi";
+import { FiAlertCircle, FiCalendar, FiCheckCircle, FiCreditCard, FiDollarSign, FiEdit2, FiSearch, FiSliders, FiX } from "react-icons/fi";
 import InstallmentFormModal from "../../components/installments/InstallmentFormModal.jsx";
 import PaymentModal from "../../components/installments/PaymentModal.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
@@ -9,12 +9,18 @@ import { getApiError } from "../../services/api.js";
 import { getInstallments } from "../../services/installmentService.js";
 import "./Installments.css";
 
+const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
 const money = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 const date = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
   timeZone: "UTC"
+});
+const currentMonth = new Intl.DateTimeFormat("es-AR", {
+  month: "long",
+  year: "numeric",
+  timeZone: ARGENTINA_TIME_ZONE
 });
 
 const filters = [
@@ -26,7 +32,6 @@ const filters = [
 ];
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
-const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 const argentinaDateParts = (value) => {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -72,6 +77,11 @@ function Installments() {
     : "ALL";
   const [installments, setInstallments] = useState([]);
   const [filter, setFilter] = useState(initialFilter);
+  const [period, setPeriod] = useState(
+    initialFilter === "PAID" && searchParams.get("period") === "CURRENT_MONTH"
+      ? "CURRENT_MONTH"
+      : undefined
+  );
   const [sortBy, setSortBy] = useState("PRIORITY");
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get("search") || "");
@@ -103,6 +113,7 @@ function Installments() {
         search: debouncedSearch,
         filter,
         sort: sortBy,
+        period,
         page
       });
       if (page > data.pagination.totalPages) {
@@ -118,7 +129,7 @@ function Installments() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, page, sortBy]);
+  }, [debouncedSearch, filter, page, period, sortBy]);
 
   useEffect(() => {
     loadInstallments();
@@ -159,7 +170,7 @@ function Installments() {
 
       <div className="installments-controls">
         <div className="installment-filters" aria-label="Filtrar cuotas">
-          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => { setFilter(item.value); setPage(1); }}><span>{item.label}</span><small>{filterCounts[item.value]}</small></button>)}
+          {filters.map((item) => <button className={filter === item.value ? "is-active" : ""} key={item.value} onClick={() => { setFilter(item.value); setPeriod(undefined); setPage(1); }}><span>{item.label}</span><small>{filterCounts[item.value]}</small></button>)}
         </div>
         <div className="installments-control-right">
           <label className="installments-sort">
@@ -175,6 +186,14 @@ function Installments() {
           <div className="installments-search"><FiSearch /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cliente, DNI, moto o venta" aria-label="Buscar cuotas" />{search && <button onClick={() => setSearch("")} aria-label="Limpiar busqueda" title="Limpiar busqueda"><FiX /></button>}</div>
         </div>
       </div>
+
+      {period === "CURRENT_MONTH" && filter === "PAID" && (
+        <div className="installments-period-filter" role="status">
+          <FiCalendar />
+          <span>Mostrando solo las cuotas pagadas en {currentMonth.format(new Date())}.</span>
+          <button type="button" onClick={() => { setPeriod(undefined); setPage(1); }}>Ver todas las pagadas</button>
+        </div>
+      )}
 
       {!loading && <Pagination pagination={pagination} onPageChange={setPage} label="cuotas" />}
 

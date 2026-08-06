@@ -251,7 +251,7 @@ function SaleFormModal({ onClose, onSaved }) {
                     </label>
                     <label>
                       <span>Interes de financiacion (%)</span>
-                      <input type="number" name="financingInterestRate" value={form.financingInterestRate} onChange={handleChange} min="0" max="100" step="0.01" placeholder="0,00" />
+                      <input type="number" name="financingInterestRate" value={form.financingInterestRate} onChange={handleChange} min="0" max="99999.99" step="0.01" placeholder="0,00" />
                     </label>
                   </div>
                 </div>

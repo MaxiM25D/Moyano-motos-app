@@ -1,8 +1,8 @@
 import api from "./api.js";
 
-export const getInstallments = async ({ search = "", filter = "ALL", sort = "PRIORITY", page = 1, pageSize = 20 } = {}) => {
+export const getInstallments = async ({ search = "", filter = "ALL", sort = "PRIORITY", period, page = 1, pageSize = 20 } = {}) => {
   const response = await api.get("/installments", {
-    params: { search: search || undefined, filter, sort, page, pageSize }
+    params: { search: search || undefined, filter, sort, period, page, pageSize }
   });
   return response.data.data;
 };

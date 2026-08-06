@@ -122,7 +122,7 @@ function Dashboard() {
       )}
 
       <div className="metrics-grid" aria-busy={loading}>
-        <Link className="metric-card metric-card-link paid-card" to="/cuotas?filter=PAID" aria-label="Ver cuotas pagadas">
+        <Link className="metric-card metric-card-link paid-card" to="/cuotas?filter=PAID&period=CURRENT_MONTH" aria-label="Ver cuotas pagadas este mes">
           <FiArrowRight className="metric-card-arrow" />
           <span className="metric-icon green"><FiCheckCircle /></span>
           <div className="metric-content">

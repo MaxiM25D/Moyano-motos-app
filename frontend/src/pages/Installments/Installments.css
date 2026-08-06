@@ -29,6 +29,10 @@
 .installments-search:focus-within { border-color: #167052; box-shadow: 0 0 0 3px rgba(22, 112, 82, 0.09); }
 .installments-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #1d2823; font-size: 12px; }
 .installments-search button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #717c77; }
+.installments-period-filter { min-height: 42px; display: flex; align-items: center; gap: 9px; padding: 9px 14px; border: 1px solid #bcd9ce; border-bottom: 0; background: #edf7f3; color: #285f4c; font-size: 11px; }
+.installments-period-filter svg { flex: 0 0 auto; font-size: 15px; }
+.installments-period-filter span { flex: 1; }
+.installments-period-filter button { border: 0; background: transparent; color: #126b4d; font: inherit; font-weight: 700; }
 
 .installments-table-wrap { min-height: 430px; border: 1px solid #e0e6e3; border-radius: 0 0 7px 7px; background: white; overflow-x: auto; }
 .installments-table { width: 100%; min-width: 1080px; border-collapse: collapse; table-layout: fixed; }
@@ -136,6 +140,9 @@
   .installments-search { width: 100%; }
   .installment-filters { width: 100%; overflow-x: auto; }
   .installment-filters button { flex: 1; min-width: 78px; }
+  .installments-period-filter { align-items: flex-start; flex-wrap: wrap; }
+  .installments-period-filter span { min-width: calc(100% - 28px); }
+  .installments-period-filter button { margin-left: 24px; padding: 0; }
   .installments-table-wrap { border: 0; background: transparent; overflow: visible; }
   .installments-table { min-width: 0; display: block; }
   .installments-table thead { display: none; }

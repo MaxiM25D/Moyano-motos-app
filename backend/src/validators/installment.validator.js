@@ -19,7 +19,7 @@ export const payInstallmentSchema = Joi.object({
   balanceAllocation: Joi.string()
     .valid("NEXT_INSTALLMENT", "REMAINING_INSTALLMENTS")
     .optional(),
-  interestRate: Joi.number().precision(2).min(0).max(100).default(0),
+  interestRate: Joi.number().precision(2).min(0).max(99999.99).default(0),
   method: Joi.string().valid("CASH", "TRANSFER", "CARD", "OTHER").default("CASH"),
   paidAt: Joi.date().optional(),
   notes: Joi.string().trim().max(500).allow("").optional()

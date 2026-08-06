@@ -105,7 +105,7 @@ model Sale {
   salePrice               Decimal       @db.Decimal(12, 2)
   downPayment             Decimal       @db.Decimal(12, 2)
   financedAmount          Decimal       @db.Decimal(12, 2)
-  financingInterestRate   Decimal       @default(0) @db.Decimal(5, 2)
+  financingInterestRate   Decimal       @default(0) @db.Decimal(7, 2)
   financingInterestAmount Decimal       @default(0) @db.Decimal(12, 2)
   installmentPlan         Int
   installmentAmount       Decimal       @db.Decimal(12, 2)
@@ -141,7 +141,7 @@ model Refinancing {
   sequence               Int
   startInstallmentNumber Int
   previousBalance        Decimal   @db.Decimal(12, 2)
-  interestRate           Decimal   @default(0) @db.Decimal(5, 2)
+  interestRate           Decimal   @default(0) @db.Decimal(7, 2)
   interestAmount         Decimal   @default(0) @db.Decimal(12, 2)
   totalAmount            Decimal   @db.Decimal(12, 2)
   installmentCount       Int
@@ -188,7 +188,7 @@ model Payment {
   expectedAmount    Decimal            @default(0) @db.Decimal(12, 2)
   carriedBalance    Decimal            @default(0) @db.Decimal(12, 2)
   balanceAllocation BalanceAllocation?
-  interestRate      Decimal            @default(0) @db.Decimal(5, 2)
+  interestRate      Decimal            @default(0) @db.Decimal(7, 2)
   interestAmount    Decimal            @default(0) @db.Decimal(12, 2)
   method            PaymentMethod      @default(CASH)
   paidAt            DateTime           @default(now())
